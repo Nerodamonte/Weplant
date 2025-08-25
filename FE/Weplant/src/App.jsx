@@ -2,10 +2,17 @@ import { useState } from "react";
 import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import "./App.css";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import MainPage from "./pages/mainPage.jsx";
 
 function App() {
   return (
-    <h1 className="text-3xl font-mono underline text-rose-900">Testing</h1>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<MainPage />} />
+      
+      </Routes>
+    </BrowserRouter>
   );
 }
 
