@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "../components/Button";
 import { Card, CardContent } from "../components/Card";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { Home, Layers, LifeBuoy } from "lucide-react";
 import "../App.css";
 export default function App() {
@@ -30,7 +31,9 @@ export default function App() {
           )}
         </div>
         <Button className="bg-blue-600 text-white px-4 py-2 rounded-lg">
-          Login
+          <Link to="/login" className="block w-full h-full">
+            Login
+          </Link>
         </Button>
       </nav>
 
