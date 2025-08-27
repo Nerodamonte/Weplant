@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Mail, Lock } from "lucide-react";
-import { Link } from "react-router-dom";
+
 import "../App.css";
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -13,7 +13,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-blue-700">
+    <div className="min-h-screen  flex items-center justify-center bg-blue-700">
       <div className="max-w-5xl w-full bg-white rounded-xl shadow-lg grid grid-cols-1 md:grid-cols-2 overflow-hidden">
         {/* Left Section */}
         <div className="flex flex-col items-center justify-center p-10 bg-white">

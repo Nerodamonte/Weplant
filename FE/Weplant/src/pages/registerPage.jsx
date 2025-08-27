@@ -17,7 +17,7 @@ export default function RegisterPage() {
       [name]: type === "checkbox" ? checked : value,
     });
   };
-
+  
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log(formData);
