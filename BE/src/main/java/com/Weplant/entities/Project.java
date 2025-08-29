@@ -3,7 +3,6 @@ package com.Weplant.entities;
 import com.Weplant.enums.ProjectStatus;
 import jakarta.persistence.*;
 import lombok.*;
-import com.Weplant.entities.Template;
 import lombok.experimental.FieldDefaults;
 import java.time.LocalDateTime;
 
@@ -33,7 +32,7 @@ public class Project {
 
     @ManyToOne
     @JoinColumn(name = "packageId")
-    private Package packageEntity;
+    private PackageEntity packageEntity;
 
     @OneToOne
     @JoinColumn(name = "attachmentId")
