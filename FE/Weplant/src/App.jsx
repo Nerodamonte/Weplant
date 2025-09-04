@@ -8,6 +8,8 @@ import LoginPage from "./pages/loginPage.jsx";
 import RegisterPage from "./pages/registerPage.jsx";
 import AuthenticatedPage from "./pages/authenticatedPage.jsx";
 import AdminPage from "./pages/adminPage.jsx";
+import ProfileInteract from "./pages/profileInteract.jsx";
+import ViewTemplates from "./pages/viewTemplates.jsx";
 function App() {
   return (
     <BrowserRouter>
@@ -17,6 +19,8 @@ function App() {
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/authen" element={<AuthenticatedPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/profile" element={<ProfileInteract />} />
+        <Route path="/templates" element={<ViewTemplates />} />
       </Routes>
     </BrowserRouter>
   );
