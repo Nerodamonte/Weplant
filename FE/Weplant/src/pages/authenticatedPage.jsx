@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "../components/Button";
 import { Card, CardContent } from "../components/Card";
-
+import { Link } from "react-router-dom";
 import { Home, Layers, LifeBuoy } from "lucide-react";
 import "../App.css";
 export default function authenticatedPage() {
@@ -25,25 +25,24 @@ export default function authenticatedPage() {
           {/* Menu */}
           <div className="flex gap-8">
             {[
-              "Trang Chủ",
-              "Dịch Vụ",
-              "Template",
-              "Về Chúng Tôi",
-              "Liên Hệ",
+              { label: "Trang Chủ", path: "/" },
+              { label: "Dịch Vụ", path: "/services" },
+              { label: "Template", path: "/templates" },
+              { label: "Về Chúng Tôi", path: "/about" },
+              { label: "Liên Hệ", path: "/contact" },
             ].map((item) => (
-              <button
-                key={item}
-                onClick={() => setActive(item)}
+              <Link
+                key={item.label}
+                to={item.path}
+                onClick={() => setActive(item.label)}
                 className={`text-sm font-medium transition ${
-                  active === item ? "text-blue-600" : "text-gray-700"
+                  active === item.label ? "text-blue-600" : "text-gray-700"
                 } hover:text-blue-600`}
               >
-                {item}
-              </button>
+                {item.label}
+              </Link>
             ))}
           </div>
-
-          {/* Login */}
         </div>
       </nav>
 
