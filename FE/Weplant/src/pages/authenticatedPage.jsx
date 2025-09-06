@@ -1,15 +1,14 @@
 import { useState } from "react";
 import { Button } from "../components/Button";
 import { Card, CardContent } from "../components/Card";
-import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Home, Layers, LifeBuoy } from "lucide-react";
 import "../App.css";
-export default function App() {
+export default function authenticatedPage() {
   const [active, setActive] = useState("Trang Chủ");
 
   return (
-    <div className="font-sans bg-white min-h-screen">
+    <div className="font-sans bg-white max-h-screen">
       {/* Navbar */}
       <nav className="w-full bg-white shadow-sm fixed top-0 left-0 z-50">
         <div className="max-w-7xl mx-auto flex justify-between items-center px-10 py-4">
@@ -44,49 +43,63 @@ export default function App() {
               </Link>
             ))}
           </div>
-
-          {/* Login */}
-          <Link
-            to="/login"
-            className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-2 rounded-full text-sm font-medium shadow hover:opacity-90 transition"
-          >
-            Login
-          </Link>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section className="grid grid-cols-1 md:grid-cols-2 px-20 py-20 gap-8 items-center">
-        <div>
-          <h1 className="text-4xl font-bold leading-snug mr-28.5 text-center ">
-            Thiết Kế Web Theo <br />
-            <span className="text-blue-600">Ý Tưởng Của Bạn</span>
-          </h1>
-          <p className="text-gray-600 text-center mt-4 max-w-lg">
-            Weplant giúp bạn biến ý tưởng thành hiện thực với các giải pháp
-            thiết kế website tuỳ chỉnh và template sẵn có. Bắt đầu dự án của bạn
-            ngay hôm nay!
-          </p>
-          <div className="flex gap-4 mt-6 ml-22.5">
-            <Button className="bg-blue-600 text-white rounded-xl px-6 py-3 shadow">
-              Bắt Đầu Dự Án
-            </Button>
-            <Button className="bg-gray-100 text-gray-700 rounded-xl px-6 py-3 shadow">
-              Khám Phá Template
-            </Button>
+      <section className="bg-gradient-to-r from-blue-50 to-blue-100 py-16 mt-10">
+        <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 px-6 items-center">
+          {/* Left Content */}
+          <div>
+            <h1 className="text-4xl font-bold text-gray-800 leading-snug">
+              Chào Mừng Bạn Đến <br /> Với{" "}
+              <span className="text-blue-600">Weplant</span>
+            </h1>
+            <p className="mt-4 text-gray-600 text-lg">
+              Khám phá các giải pháp thiết kế website tùy chỉnh và template sẵn
+              có của Weplant. Quản lý dự án của bạn ngay hôm nay!
+            </p>
+            <div className="mt-6 flex space-x-4">
+              <button className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition">
+                Bắt Đầu Dự Án Mới
+              </button>
+              <button className="px-6 py-3 border border-blue-600 text-blue-600 rounded-lg font-medium hover:bg-blue-600 hover:text-white transition">
+                Khám Phá Template
+              </button>
+            </div>
+          </div>
+
+          {/* Right Profile Card */}
+          <div className="bg-white shadow-md rounded-xl p-6 w-full max-w-sm mx-auto">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-20 h-20 rounded-full bg-gray-200"></div>
+              <h2 className="mt-4 font-semibold text-lg text-gray-800">
+                Nguyễn Minh Anh
+              </h2>
+              <p className="text-gray-500">minh.anh@email.com</p>
+
+              <div className="mt-4 space-y-2 text-sm text-gray-600 w-full">
+                <div className="flex justify-between">
+                  <span>Loại tài khoản:</span>
+                  <span className="font-medium">Cá nhân</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Ngày tham gia:</span>
+                  <span className="font-medium">15/03/2024</span>
+                </div>
+              </div>
+
+              <div className="mt-6 space-y-3 w-full">
+                <button className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition">
+                  Chỉnh Sửa Profile
+                </button>
+                <button className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-100 transition">
+                  Dự Án Của Tôi
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-        >
-          <img
-            src="https://img.freepik.com/free-vector/website-creator-concept-illustration_114360-2799.jpg"
-            alt="hero"
-            className="rounded-2xl shadow-lg"
-          />
-        </motion.div>
       </section>
 
       {/* Services */}
@@ -97,7 +110,7 @@ export default function App() {
           mọi nhu cầu của bạn
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-20">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
           <Card className="rounded-2xl shadow-md hover:shadow-lg transition">
             <CardContent className="p-6 flex flex-col items-center text-center">
               <Home className="w-10 h-10 text-blue-600 mb-4" />
@@ -252,26 +265,14 @@ export default function App() {
         </div>
       </section>
       {/* Footer */}
-      <footer className="w-full bg-gray-900 text-gray-300">
-        {/* Grid chia 4 cột */}
-        <div className="grid md:grid-cols-4 gap-8 px-10 lg:px-20 py-12">
+      <footer id="contact" className="bg-gray-900 text-gray-300 py-12 px-6">
+        <div className="grid md:grid-cols-4 gap-8 max-w-6xl mx-auto">
           <div>
-            <h3 className="font-bold text-white mb-4">weplant</h3>
+            <h3 className="font-bold text-white mb-4">Weplant</h3>
             <p>
               Chúng tôi giúp bạn biến ý tưởng thành hiện thực với các giải pháp
               thiết kế website tùy chỉnh.
             </p>
-            <div className="flex space-x-4 mt-4">
-              <a href="#">
-                <i className="fab fa-facebook"></i>
-              </a>
-              <a href="#">
-                <i className="fab fa-linkedin"></i>
-              </a>
-              <a href="#">
-                <i className="fab fa-twitter"></i>
-              </a>
-            </div>
           </div>
           <div>
             <h4 className="font-semibold text-white mb-4">Dịch Vụ</h4>
@@ -295,19 +296,13 @@ export default function App() {
             <h4 className="font-semibold text-white mb-4">Liên Hệ</h4>
             <ul className="space-y-2">
               <li>📧 support@weplant.com</li>
-              <li>📞 0123 456 789</li>
+              <li>📞 0324 456 789</li>
               <li>📍 123 Đường Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh</li>
             </ul>
           </div>
         </div>
-
-        {/* Dòng cuối */}
-        <div className="border-t border-gray-700 py-6 px-10 lg:px-20 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
-          <p>© 2025 Weplant. Tất cả quyền được bảo lưu.</p>
-          <div className="flex space-x-6 mt-4 md:mt-0">
-            <a href="#">Điều Khoản Sử Dụng</a>
-            <a href="#">Chính Sách Bảo Mật</a>
-          </div>
+        <div className="text-center text-gray-500 text-sm mt-8">
+          © 2025 Weplant. Tất cả quyền được bảo lưu.
         </div>
       </footer>
     </div>
