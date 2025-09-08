@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: Weplant
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/weplant
+    username: postgres
+    password: 12345
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    url: jdbc:postgresql://localhost:5432/weplant
+    user: postgres
+    password: 12345
+    locations: classpath:db/migration
+
+
+jwt:
+  valid-duration: 300
+  refreshable-duration: 172800
+  signer-key: BWHX28bDtNd9+mWCCZ7gi52UmXIkJJzi5qqdkNZUEghdrQ7Hoal4U1B2CqFc+3uA
