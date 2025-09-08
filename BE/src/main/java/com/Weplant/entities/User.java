@@ -18,21 +18,21 @@ import java.util.List;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long userId;
+    Long userId;
 
-    private String userName;
-    private String email;
-    private String password;
-    private Long phoneNumber;
+    String fullName;
+    String email;
+    String password;
+    Long phoneNumber;
 
     @Enumerated(EnumType.STRING)
-    private Role role;
+    Role role;
 
-    private LocalDateTime createAt;
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Project> projects;
+    LocalDateTime createAt;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Payment> payments;
+    List<Project> projects;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    List<Payment> payments;
 }

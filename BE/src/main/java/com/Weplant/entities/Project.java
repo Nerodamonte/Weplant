@@ -16,33 +16,33 @@ import java.time.LocalDateTime;
 public class Project {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long projectId;
+    Long projectId;
 
     @ManyToOne
     @JoinColumn(name = "userId")
-    private User user;
+    User user;
 
     @ManyToOne
     @JoinColumn(name = "templateId")
-    private Template template;
+    Template template;
 
     @ManyToOne
     @JoinColumn(name = "paymentId")
-    private Payment payment;
+    Payment payment;
 
     @ManyToOne
     @JoinColumn(name = "packageId")
-    private PackageEntity packageEntity;
+    PackageEntity packageEntity;
 
     @OneToOne
     @JoinColumn(name = "attachmentId")
-    private Attachment attachment;
+    Attachment attachment;
 
-    private String projectName;
-    private String description;
+    String projectName;
+    String description;
 
     @Enumerated(EnumType.STRING)
-    private ProjectStatus status;
+    ProjectStatus status;
 
-    private LocalDateTime createAt;
+    LocalDateTime createAt;
 }

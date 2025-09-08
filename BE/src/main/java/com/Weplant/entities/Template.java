@@ -17,15 +17,15 @@ import java.util.List;
 public class Template {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long templateId;
+    Long templateId;
 
-    private String templateName;
-    private String description;
-    private LocalDateTime createAt;
-
-    @OneToMany(mappedBy = "template", cascade = CascadeType.ALL)
-    private List<Image> images;
+    String templateName;
+    String description;
+    LocalDateTime createAt;
 
     @OneToMany(mappedBy = "template", cascade = CascadeType.ALL)
-    private List<Project> projects;
+    List<Image> images;
+
+    @OneToMany(mappedBy = "template", cascade = CascadeType.ALL)
+    List<Project> projects;
 }

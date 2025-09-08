@@ -53,7 +53,7 @@ CREATE TABLE templates
 CREATE TABLE users
 (
     user_id      BIGSERIAL PRIMARY KEY,
-    user_name    VARCHAR(255),
+    full_name    VARCHAR(255),
     email        VARCHAR(255),
     password     VARCHAR(255),
     phone_number BIGINT,

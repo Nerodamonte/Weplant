@@ -17,15 +17,15 @@ import java.time.LocalDateTime;
 public class Payment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long paymentId;
+    Long paymentId;
 
     @ManyToOne
     @JoinColumn(name = "userId")
-    private User user;
+    User user;
 
-    private Long price;
-    private LocalDateTime date;
+    Long price;
+    LocalDateTime date;
 
     @Enumerated(EnumType.STRING)
-    private PaymentStatus status;
+    PaymentStatus status;
 }

@@ -14,11 +14,11 @@ import lombok.experimental.FieldDefaults;
 public class Image {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long imageId;
+    Long imageId;
 
     @ManyToOne
     @JoinColumn(name = "templateId")
-    private Template template;
+    Template template;
 
-    private String imageUrl;
+    String imageUrl;
 }

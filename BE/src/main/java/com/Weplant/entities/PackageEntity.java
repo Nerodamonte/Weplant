@@ -16,12 +16,12 @@ import java.util.List;
 public class PackageEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long packageId;
+    Long packageId;
 
-    private String packageName;
-    private String packageDescription;
-    private Long packagePrice;
+    String packageName;
+    String packageDescription;
+    Long packagePrice;
 
     @OneToMany(mappedBy = "packageEntity", cascade = CascadeType.ALL)
-    private List<Project> projects;
+    List<Project> projects;
 }

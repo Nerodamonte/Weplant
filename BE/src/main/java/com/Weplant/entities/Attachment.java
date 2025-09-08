@@ -14,10 +14,10 @@ import lombok.experimental.FieldDefaults;
 public class Attachment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long attachmentId;
+    Long attachmentId;
 
-    private String attachmentURL;
+    String attachmentURL;
 
     @OneToOne(mappedBy = "attachment")
-    private Project project;
+    Project project;
 }
