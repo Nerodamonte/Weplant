@@ -6,9 +6,11 @@ export default function RegisterPage() {
     email: "",
     password: "",
     confirmPassword: "",
-    accountType: "",
+    phoneNumber: "",
     agree: false,
   });
+
+  const [message, setMessage] = useState("");
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -17,10 +19,41 @@ export default function RegisterPage() {
       [name]: type === "checkbox" ? checked : value,
     });
   };
-  
-  const handleSubmit = (e) => {
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(formData);
+
+    if (formData.password !== formData.confirmPassword) {
+      setMessage("Mật khẩu xác nhận không khớp!");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:8080/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fullName: formData.username, // backend yêu cầu fullName
+          email: formData.email,
+          password: formData.password,
+          phoneNumber: formData.phoneNumber,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessage("Đăng ký thành công!");
+        console.log("Token:", data.data.token);
+      } else {
+        setMessage(data.message || "Đăng ký thất bại!");
+      }
+    } catch (error) {
+      console.error("Lỗi:", error);
+      setMessage("Có lỗi kết nối đến server!");
+    }
   };
 
   return (
@@ -128,19 +161,17 @@ export default function RegisterPage() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              Loại tài khoản
+              Số điện thoại
             </label>
-            <select
-              name="accountType"
-              value={formData.accountType}
+            <input
+              type="text"
+              name="phoneNumber"
+              value={formData.phoneNumber}
               onChange={handleChange}
+              placeholder="0123456789"
               className="mt-1 w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
-            >
-              <option value="">Chọn loại tài khoản</option>
-              <option value="personal">Cá nhân</option>
-              <option value="business">Doanh nghiệp</option>
-            </select>
+            />
           </div>
 
           <div className="flex items-center gap-2">
@@ -170,6 +201,10 @@ export default function RegisterPage() {
           >
             Đăng Ký
           </button>
+
+          {message && (
+            <p className="text-center text-sm text-red-500 mt-2">{message}</p>
+          )}
 
           <p className="text-center text-sm text-gray-600">
             Đã có tài khoản?{" "}
