@@ -4,16 +4,18 @@ spring:
 
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/weplant
-    username: postgres
-    password: 12345
+    url: jdbc:postgresql://dpg-d2vsfmbuibrs73dn2kt0-a.singapore-postgres.render.com:5432/weplant?sslmode=require
+    username: weplant_user
+    password: wqFb4E4wWLpVq03flnvlM91Fv9iAV7wA
+    hikari:
+      maximum-pool-size: 10
 
-  jpa:
-    hibernate:
-      ddl-auto: validate
-    properties:
+    jpa:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+        ddl-auto: validate
+      properties:
+        hibernate:
+          dialect: org.hibernate.dialect.PostgreSQLDialect
 
   flyway:
     enabled: true
