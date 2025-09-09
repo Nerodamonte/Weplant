@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-
+import { useNavigate } from "react-router-dom";
 export default function RegisterPage() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -35,20 +36,25 @@ export default function RegisterPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          fullName: formData.username, // backend yêu cầu fullName
+          fullName: formData.username,
           email: formData.email,
           password: formData.password,
           phoneNumber: formData.phoneNumber,
         }),
       });
 
-      const data = await response.json();
+      let data = null;
+      try {
+        data = await response.json(); // chỉ parse nếu có body
+      } catch {
+        // không có JSON trả về
+      }
 
       if (response.ok) {
         setMessage("Đăng ký thành công!");
-        console.log("Token:", data.data.token);
+        console.log("Token:", data?.data?.token);
       } else {
-        setMessage(data.message || "Đăng ký thất bại!");
+        setMessage(data?.message || "Đăng ký thất bại!");
       }
     } catch (error) {
       console.error("Lỗi:", error);
