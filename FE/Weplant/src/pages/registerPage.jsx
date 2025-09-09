@@ -22,45 +22,48 @@ export default function RegisterPage() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (formData.password !== formData.confirmPassword) {
-      setMessage("Mật khẩu xác nhận không khớp!");
-      return;
-    }
+  if (formData.password !== formData.confirmPassword) {
+    setMessage("Mật khẩu xác nhận không khớp!");
+    return;
+  }
 
+  try {
+    const response = await fetch("http://localhost:8080/api/auth/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        fullName: formData.username,
+        email: formData.email,
+        password: formData.password,
+        phoneNumber: formData.phoneNumber,
+      }),
+    });
+
+    let data = null;
     try {
-      const response = await fetch("http://localhost:8080/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          fullName: formData.username,
-          email: formData.email,
-          password: formData.password,
-          phoneNumber: formData.phoneNumber,
-        }),
-      });
+      data = await response.json();
+    } catch {}
 
-      let data = null;
-      try {
-        data = await response.json(); // chỉ parse nếu có body
-      } catch {
-        // không có JSON trả về
-      }
+    if (response.ok) {
+      setMessage("Đăng ký thành công! Đang chuyển hướng...");
 
-      if (response.ok) {
-        setMessage("Đăng ký thành công!");
-        console.log("Token:", data?.data?.token);
-      } else {
-        setMessage(data?.message || "Đăng ký thất bại!");
-      }
-    } catch (error) {
-      console.error("Lỗi:", error);
-      setMessage("Có lỗi kết nối đến server!");
+      // Sau 3 giây chuyển hướng
+      setTimeout(() => {
+        navigate("/login"); // đổi thành "/authen" nếu đúng route bạn dùng
+      }, 3000);
+    } else {
+      setMessage(data?.message || "Đăng ký thất bại!");
     }
-  };
+  } catch (error) {
+    console.error("Lỗi:", error);
+    setMessage("Có lỗi kết nối đến server!");
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-blue-700 flex flex-col items-center justify-center">
