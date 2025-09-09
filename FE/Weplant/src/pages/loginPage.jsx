@@ -1,19 +1,77 @@
 import { useState } from "react";
 import { Mail, Lock } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 import "../App.css";
+
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  // Giả lập dữ liệu tài khoản (trong thực tế sẽ gọi API)
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log({ email, password, remember });
+    setError("");
+    setIsLoading(true);
+
+    try {
+      const response = await fetch("http://localhost:8080/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Email hoặc mật khẩu không đúng!");
+      }
+
+      const result = await response.json();
+
+      // result sẽ có cấu trúc giống ApiResponse<LoginResponse>
+      const token = result?.data?.token;
+      const userEmail = result?.data?.email;
+
+      if (token) {
+        // lưu token
+        localStorage.setItem("authToken", token);
+        localStorage.setItem("isAuthenticated", "true");
+        localStorage.setItem("userEmail", userEmail || email);
+
+        if (remember) {
+          localStorage.setItem("rememberMe", "true");
+        }
+
+        navigate("/authen");
+      } else {
+        setError("Không nhận được token từ server!");
+      }
+    } catch (err) {
+      setError(err.message || "Có lỗi xảy ra khi đăng nhập!");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Xử lý đăng nhập với Google (giả lập)
+  const handleGoogleLogin = () => {
+    setIsLoading(true);
+    // Giả lập đăng nhập Google thành công
+    setTimeout(() => {
+      localStorage.setItem("authToken", "google-jwt-token-456");
+      localStorage.setItem("isAuthenticated", "true");
+      localStorage.setItem("userEmail", "user@gmail.com");
+      navigate("/authen");
+    }, 1500);
   };
 
   return (
-    <div className="min-h-screen  flex items-center justify-center bg-blue-700">
+    <div className="min-h-screen flex items-center justify-center bg-blue-700">
       <div className="max-w-5xl w-full bg-white rounded-xl shadow-lg grid grid-cols-1 md:grid-cols-2 overflow-hidden">
         {/* Left Section */}
         <div className="flex flex-col items-center justify-center p-10 bg-white">
@@ -43,9 +101,15 @@ export default function LoginPage() {
               Đăng Nhập Vào Weplant
             </h2>
             <p className="text-gray-500 text-sm mb-6">
-              Đăng nhập để bắt đầu tạo website hoặc khám phá các template của
-              bạn
+              Đăng nhập để bắt đầu tạo website hoặc khám phá các template của bạn
             </p>
+
+            {/* Thông báo lỗi */}
+            {error && (
+              <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+                {error}
+              </div>
+            )}
 
             {/* Email */}
             <div className="mb-4">
@@ -58,8 +122,9 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="nhap@email.com"
-                  className="w-full border rounded-lg px-10 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full border rounded-lg px-10 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:bg-gray-100"
                   required
+                  disabled={isLoading}
                 />
                 <Mail className="absolute left-3 top-2.5 text-gray-400 w-5 h-5" />
               </div>
@@ -76,8 +141,9 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Nhập mật khẩu của bạn"
-                  className="w-full border rounded-lg px-10 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full border rounded-lg px-10 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:bg-gray-100"
                   required
+                  disabled={isLoading}
                 />
                 <Lock className="absolute left-3 top-2.5 text-gray-400 w-5 h-5" />
               </div>
@@ -91,6 +157,7 @@ export default function LoginPage() {
                   checked={remember}
                   onChange={(e) => setRemember(e.target.checked)}
                   className="mr-2"
+                  disabled={isLoading}
                 />
                 Ghi nhớ tôi
               </label>
@@ -102,9 +169,17 @@ export default function LoginPage() {
             {/* Login Button */}
             <button
               type="submit"
-              className="w-full bg-blue-500 text-white py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-blue-600 transition"
+              disabled={isLoading}
+              className="w-full bg-blue-500 text-white py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-blue-600 transition disabled:bg-blue-300 disabled:cursor-not-allowed"
             >
-              <span>Đăng Nhập</span>
+              {isLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <span>Đang xử lý...</span>
+                </>
+              ) : (
+                <span>Đăng Nhập</span>
+              )}
             </button>
 
             {/* Or Divider */}
@@ -117,14 +192,16 @@ export default function LoginPage() {
             {/* Google Login */}
             <button
               type="button"
-              className="w-full border py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-100 transition"
+              onClick={handleGoogleLogin}
+              disabled={isLoading}
+              className="w-full border py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-100 transition disabled:bg-gray-50 disabled:cursor-not-allowed"
             >
               <img
                 src="https://www.svgrepo.com/show/475656/google-color.svg"
                 alt="Google"
                 className="w-5 h-5"
               />
-              Đăng nhập với Google
+              {isLoading ? "Đang xử lý..." : "Đăng nhập với Google"}
             </button>
 
             {/* Register */}
