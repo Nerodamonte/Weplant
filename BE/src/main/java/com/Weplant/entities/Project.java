@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "projects")
@@ -26,17 +27,15 @@ public class Project {
     @JoinColumn(name = "templateId")
     Template template;
 
-    @ManyToOne
-    @JoinColumn(name = "paymentId")
-    Payment payment;
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Payment> payments;
 
     @ManyToOne
     @JoinColumn(name = "packageId")
     PackageEntity packageEntity;
 
-    @OneToOne
-    @JoinColumn(name = "attachmentId")
-    Attachment attachment;
+    @OneToMany(mappedBy = "project")
+    List<Attachment> attachments;
 
     String projectName;
     String description;

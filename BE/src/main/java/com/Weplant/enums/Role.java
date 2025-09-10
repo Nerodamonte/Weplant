@@ -3,7 +3,7 @@ package com.Weplant.enums;
 import org.springframework.security.core.GrantedAuthority;
 
 public enum Role implements GrantedAuthority {
-    ADMIN, USER;
+    ADMIN, CUSTOMER;
 
     @Override
     public String getAuthority() {

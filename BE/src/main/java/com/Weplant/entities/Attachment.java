@@ -18,6 +18,7 @@ public class Attachment {
 
     String attachmentURL;
 
-    @OneToOne(mappedBy = "attachment")
+    @ManyToOne
+    @JoinColumn(name = "projectId")
     Project project;
 }

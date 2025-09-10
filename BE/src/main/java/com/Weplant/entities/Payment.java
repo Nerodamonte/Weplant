@@ -20,8 +20,8 @@ public class Payment {
     Long paymentId;
 
     @ManyToOne
-    @JoinColumn(name = "userId")
-    User user;
+    @JoinColumn(name = "projectId", nullable = false)
+    private Project project;
 
     Long price;
     LocalDateTime date;
