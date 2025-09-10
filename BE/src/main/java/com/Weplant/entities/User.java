@@ -33,11 +33,8 @@ public class User implements UserDetails {
 
     LocalDateTime createAt;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user")
     List<Project> projects;
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    List<Payment> payments;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
