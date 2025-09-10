@@ -10,6 +10,7 @@ import AuthenticatedPage from "./pages/authenticatedPage.jsx";
 import AdminPage from "./pages/adminPage.jsx";
 import ProfileInteract from "./pages/profileInteract.jsx";
 import ViewTemplates from "./pages/viewTemplates.jsx";
+import PricingPage from "./pages/pricingPage.jsx";
 function App() {
   return (
     <BrowserRouter>
@@ -21,6 +22,7 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/profile" element={<ProfileInteract />} />
         <Route path="/templates" element={<ViewTemplates />} />
+        <Route path="/pricing" element={<PricingPage />} />
       </Routes>
     </BrowserRouter>
   );
