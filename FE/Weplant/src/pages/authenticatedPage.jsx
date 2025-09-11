@@ -4,16 +4,26 @@ import { Card, CardContent } from "../components/Card";
 import { Link } from "react-router-dom";
 import { Home, Layers, LifeBuoy } from "lucide-react";
 import "../App.css";
+import { useNavigate } from "react-router-dom"; // <--- Thêm dòng này
 
 export default function AuthenticatedPage() {
   const [active, setActive] = useState("Trang Chủ");
   const [user, setUser] = useState(null);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
+ 
 
   useEffect(() => {
+    const isAuthenticated = localStorage.getItem("isAuthenticated");
     const token = localStorage.getItem("authToken");
     const userEmail = localStorage.getItem("userEmail");
 
+    if (!isAuthenticated || !token) {
+      // Nếu chưa login, chuyển về trang login
+      navigate("/login");
+      return;
+    }
+    
     if (!token || !userEmail) {
       setError("Bạn chưa đăng nhập!");
       return;
