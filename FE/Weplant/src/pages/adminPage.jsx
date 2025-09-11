@@ -1,68 +1,52 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Bell } from "lucide-react";
+import { useNavigate } from "react-router-dom"; // 👉 để điều hướng
 import "../App.css"; // Đã import Tailwind CSS
 
-const customers = [
-  {
-    id: 1,
-    avatar: "https://via.placeholder.com/40?text=NL", // Thay bằng URL avatar thực
-    name: "Nguyễn Thị Lan",
-    email: "nguyenlan@email.com",
-    type: "Cá nhân",
-    typeColor: "bg-blue-100 text-blue-600",
-    registerDate: "15/12/2024",
-    projects: 3,
-  },
-  {
-    id: 2,
-    avatar: "https://via.placeholder.com/40?text=AT", // Thay bằng URL avatar thực
-    name: "Công ty ABC Tech",
-    email: "contact@abctech.com",
-    type: "Doanh nghiệp",
-    typeColor: "bg-purple-100 text-purple-600",
-    registerDate: "10/12/2024",
-    projects: 7,
-  },
-  {
-    id: 3,
-    avatar: "https://via.placeholder.com/40?text=TM", // Thay bằng URL avatar thực
-    name: "Trần Văn Minh",
-    email: "tranminh@email.com",
-    type: "Cá nhân",
-    typeColor: "bg-blue-100 text-blue-600",
-    registerDate: "08/12/2024",
-    projects: 1,
-  },
-  {
-    id: 4,
-    avatar: "https://via.placeholder.com/40?text=LH", // Thay bằng URL avatar thực
-    name: "Lê Thị Hương",
-    email: "huongle@email.com",
-    type: "Cá nhân",
-    typeColor: "bg-blue-100 text-blue-600",
-    registerDate: "05/12/2024",
-    projects: 2,
-  },
-  {
-    id: 5,
-    avatar: "https://via.placeholder.com/40?text=XY", // Thay bằng URL avatar thực
-    name: "Startup XYZ",
-    email: "hello@startupxyz.com",
-    type: "Doanh nghiệp",
-    typeColor: "bg-purple-100 text-purple-600",
-    registerDate: "01/12/2024",
-    projects: 5,
-  },
-];
-
-export default function App() {
+export default function AdminPage() {
   const [search, setSearch] = useState("");
   const [accountType, setAccountType] = useState("Tất cả");
   const [sort, setSort] = useState("Tên A-Z");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
+  const navigate = useNavigate();
 
-  // Lọc và sắp xếp dữ liệu
+  // 👉 Kiểm tra quyền truy cập
+  useEffect(() => {
+    const token = localStorage.getItem("authToken");
+    const role = localStorage.getItem("userRole");
+
+    if (!token || role !== "ADMIN") {
+      navigate("/login"); // không có quyền thì đưa về login
+    }
+  }, [navigate]);
+
+  // (tạm data test, sau này fetch từ API)
+  const customers = [
+    {
+      id: 1,
+      avatar: "https://via.placeholder.com/40?text=NL",
+      name: "Nguyễn Thị Lan",
+      email: "nguyenlan@email.com",
+      type: "Cá nhân",
+      typeColor: "bg-blue-100 text-blue-600",
+      registerDate: "15/12/2024",
+      projects: 3,
+    },
+    {
+      id: 2,
+      avatar: "https://via.placeholder.com/40?text=AT",
+      name: "Công ty ABC Tech",
+      email: "contact@abctech.com",
+      type: "Doanh nghiệp",
+      typeColor: "bg-purple-100 text-purple-600",
+      registerDate: "10/12/2024",
+      projects: 7,
+    },
+    // ... các user khác
+  ];
+
+  // Lọc + sắp xếp
   const filteredCustomers = customers
     .filter(
       (cust) =>
@@ -88,7 +72,7 @@ export default function App() {
       {/* Header */}
       <header className="bg-white shadow-sm px-6 py-4 flex items-center justify-between border-b border-gray-100">
         <div className="flex items-center gap-6">
-          <h1 className="text-xl font-bold text-blue-600">Weplant</h1>
+          <h1 className="text-xl font-bold text-blue-600">Weplant Admin</h1>
           <nav className="flex gap-6 text-sm font-medium">
             <a
               href="#"
@@ -110,14 +94,14 @@ export default function App() {
         <div className="flex items-center gap-4">
           <Bell className="w-5 h-5 text-gray-500" />
           <img
-            src="https://via.placeholder.com/32?text=U" // Thay bằng URL avatar thực
+            src="https://via.placeholder.com/32?text=U"
             alt="User avatar"
             className="w-8 h-8 rounded-full"
           />
         </div>
       </header>
 
-      {/* Main Content */}
+      {/* Main */}
       <main className="flex-1 max-w-7xl mx-auto px-6 py-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
           Danh Sách Khách Hàng
@@ -220,31 +204,30 @@ export default function App() {
               ))}
             </tbody>
           </table>
+          {/* Pagination */}
           <div className="flex justify-between items-center w-full">
-            {" "}
-            {/* Thêm px-4 để giảm padding tổng thể */}
             <div className="text-sm font-medium text-gray-700">
-              Hiện thị hiện 5 trong tổng số 25 khách hàng
+              Hiện thị {paginatedCustomers.length} trong tổng số{" "}
+              {filteredCustomers.length} khách hàng
             </div>
             <div className="flex items-center gap-1">
               <button
                 className="px-3 py-1 text-sm text-blue-600 border border-gray-300 rounded hover:bg-blue-100 disabled:bg-gray-200 disabled:text-gray-500 disabled:border-gray-300 disabled:cursor-not-allowed"
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-               
               >
                 Trước
               </button>
-              {[1, 2, 3].map((page) => (
+              {[...Array(totalPages)].map((_, i) => (
                 <button
-                  key={page}
+                  key={i + 1}
                   className={`px-3 py-1 text-sm ${
-                    currentPage === page
+                    currentPage === i + 1
                       ? "bg-blue-600 text-white"
                       : "text-gray-700 hover:bg-gray-100"
                   } rounded`}
-                  onClick={() => setCurrentPage(page)}
+                  onClick={() => setCurrentPage(i + 1)}
                 >
-                  {page}
+                  {i + 1}
                 </button>
               ))}
               <button
@@ -252,7 +235,6 @@ export default function App() {
                 onClick={() =>
                   setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                 }
-                
               >
                 Sau
               </button>

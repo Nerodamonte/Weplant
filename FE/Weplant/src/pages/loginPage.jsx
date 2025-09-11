@@ -33,7 +33,6 @@ export default function LoginPage() {
 
       const result = await response.json();
 
-      // result sẽ có cấu trúc giống ApiResponse<LoginResponse>
       const token = result?.data?.token;
       const userEmail = result?.data?.email;
 
@@ -47,7 +46,36 @@ export default function LoginPage() {
           localStorage.setItem("rememberMe", "true");
         }
 
-        navigate("/authen");
+        // 🔥 gọi API getAll để lấy role của user
+        const userRes = await fetch("http://localhost:8080/api/users/getAll", {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!userRes.ok) {
+          throw new Error("Không lấy được thông tin user!");
+        }
+
+        const userData = await userRes.json();
+        const allUsers = userData?.data || [];
+        const currentUser = allUsers.find(
+          (u) => u.email === (userEmail || email)
+        );
+
+        if (!currentUser) {
+          throw new Error("Không tìm thấy user trong hệ thống!");
+        }
+
+        localStorage.setItem("userRole", currentUser.role);
+
+        // Điều hướng theo role
+        if (currentUser.role === "ADMIN") {
+          navigate("/admin");
+        } else {
+          navigate("/authen");
+        }
       } else {
         setError("Không nhận được token từ server!");
       }
@@ -101,7 +129,8 @@ export default function LoginPage() {
               Đăng Nhập Vào Weplant
             </h2>
             <p className="text-gray-500 text-sm mb-6">
-              Đăng nhập để bắt đầu tạo website hoặc khám phá các template của bạn
+              Đăng nhập để bắt đầu tạo website hoặc khám phá các template của
+              bạn
             </p>
 
             {/* Thông báo lỗi */}
