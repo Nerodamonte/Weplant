@@ -1,6 +1,17 @@
+supabase:
+  url: https://ufdixqatifrwwcofjxlx.supabase.co
+  serviceRoleKey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmZGl4cWF0aWZyd3djb2ZqeGx4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NzYwNzYyMywiZXhwIjoyMDczMTgzNjIzfQ.4lRguv4TPnhp4RsdTCPj1jNnms_gFa2P1HpeYDdSGqk
+  bucket: WeplantStorage
+  bucketPublic: ${SUPABASE_BUCKET_PUBLIC:true}
+
 spring:
   application:
     name: Weplant
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
 
   datasource:
     driver-class-name: org.postgresql.Driver
