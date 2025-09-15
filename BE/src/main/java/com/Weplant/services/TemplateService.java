@@ -20,13 +20,13 @@ public class TemplateService {
     @Autowired
     ImageRepository imageRepository;
 
-    public void create(TemplateCreateRequest request) {
+    public Long create(TemplateCreateRequest request) {
         Template template = Template.builder()
                 .templateName(request.getTemplateName())
                 .description(request.getDescription())
                 .createAt(LocalDateTime.now())
                 .build();
-        templateRepository.save(template);
+        return templateRepository.save(template).getTemplateId();
     }
 
     public List<TemplateDetailResponse> getAll() {

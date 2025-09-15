@@ -64,6 +64,19 @@ public class AttachmentService {
         attachmentRepository.save(att);
     }
 
+    public void deleteAttachmentByProject(Long projectId) throws Exception {
+        List<Attachment> atts = attachmentRepository.findByProject_ProjectId(projectId);
+        for(Attachment att : atts) {
+            String filePath = att.getAttachmentURL();
+            if (props.isBucketPublic() && filePath.startsWith("http")) {
+                int idx = filePath.indexOf(props.getBucket()) + props.getBucket().length() + 1;
+                filePath = filePath.substring(idx);
+            }
+            storage.deleteFile(filePath);
+            attachmentRepository.delete(att);
+        }
+    }
+
     public String resolveViewUrl(Attachment att) throws Exception {
         String val = att.getAttachmentURL();
         if (val == null) return null;

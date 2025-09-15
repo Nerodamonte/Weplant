@@ -27,9 +27,6 @@ public class Project {
     @JoinColumn(name = "templateId")
     Template template;
 
-    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Payment> payments;
-
     @ManyToOne
     @JoinColumn(name = "packageId")
     PackageEntity packageEntity;

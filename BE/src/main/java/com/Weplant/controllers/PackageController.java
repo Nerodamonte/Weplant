@@ -27,7 +27,7 @@ public class PackageController {
     public ApiResponse<Void> create(@RequestBody PackageCreateRequest request) {
         packageService.createPackage(request);
         return ApiResponse.<Void>builder()
-                .message("gói đã xoá thành công")
+                .message("gói đã tạo thành công")
                 .build();
     }
 
