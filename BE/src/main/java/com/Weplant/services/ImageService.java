@@ -40,7 +40,7 @@ public class ImageService {
 
     public void deleteImage(Long imageId) throws Exception {
         Image img = imageRepository.findById(imageId)
-                .orElseThrow(() -> new IllegalArgumentException("Attachment not found: " + imageId));
+                .orElseThrow(() -> new IllegalArgumentException("Template not found: " + imageId));
         String filePath = img.getImageUrl();
         if (props.isBucketPublic() && filePath.startsWith("http")) {
             int idx = filePath.indexOf(props.getBucket()) + props.getBucket().length() + 1;
@@ -49,4 +49,18 @@ public class ImageService {
         storage.deleteFile(filePath);
         imageRepository.delete(img);
     }
+
+    public void deleteImageByTemplate(Long templateId) throws Exception {
+        List<Image> imgs = imageRepository.findByTemplate_TemplateId(templateId);
+        for(Image img : imgs) {
+            String filePath = img.getImageUrl();
+            if (props.isBucketPublic() && filePath.startsWith("http")) {
+                int idx = filePath.indexOf(props.getBucket()) + props.getBucket().length() + 1;
+                filePath = filePath.substring(idx);
+            }
+            storage.deleteFile(filePath);
+            imageRepository.delete(img);
+        }
+        }
+
 }
