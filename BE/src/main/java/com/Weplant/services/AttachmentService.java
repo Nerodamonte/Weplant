@@ -64,12 +64,10 @@ public class AttachmentService {
         attachmentRepository.save(att);
     }
 
-    // Lấy URL hiển thị (nếu DB đang lưu path của bucket private)
     public String resolveViewUrl(Attachment att) throws Exception {
         String val = att.getAttachmentURL();
         if (val == null) return null;
-        if (val.startsWith("http")) return val; // bucket public → đã là URL
-        // bucket private → tạo signed URL
+        if (val.startsWith("http")) return val;
         return storage.createSignedUrl(val, 3600);
     }
 }
