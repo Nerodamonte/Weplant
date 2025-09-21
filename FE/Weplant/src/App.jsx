@@ -20,7 +20,7 @@ function App() {
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/authen" element={<AuthenticatedPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/profile" element={<ProfileInteract />} />
+        <Route path="/profile/:id" element={<ProfileInteract />} />
         <Route path="/templates" element={<ViewTemplates />} />
         <Route path="/pricing" element={<PricingPage />} />
       </Routes>
