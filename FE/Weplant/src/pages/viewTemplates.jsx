@@ -83,9 +83,7 @@ export default function TemplatesPage() {
           Duyệt qua bộ sưu tập template chuyên nghiệp của Weplant và chọn mẫu
           phù hợp để bắt đầu dự án của bạn!
         </p>
-        <button className="mt-6 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition">
-          Tạo Dự Án Tùy Chỉnh
-        </button>
+       
       </section>
 
       {/* Search + Filter */}
