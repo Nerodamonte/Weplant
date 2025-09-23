@@ -1,47 +1,43 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "../App.css";
 import { Link } from "react-router-dom";
+
 export default function TemplatesPage() {
   const [active, setActive] = useState("Template");
+  const [templates, setTemplates] = useState([]);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  const templates = [
-    {
-      title: "Template Cửa hàng thời trang",
-      desc: "Trang web thương mại điện tử hiện đại cho cửa hàng quần áo.",
-      type: "Thương mại điện tử",
-      img: "/templates/fashion.png",
-    },
-    {
-      title: "Template Blog cá nhân",
-      desc: "Giao diện blog tối giản, dễ sử dụng để chia sẻ câu chuyện.",
-      type: "Blog",
-      img: "/templates/blog.png",
-    },
-    {
-      title: "Template Portfolio sáng tạo",
-      desc: "Danh mục dự án ấn tượng cho designer & freelancer.",
-      type: "Portfolio",
-      img: "/templates/portfolio.png",
-    },
-    {
-      title: "Template Doanh nghiệp",
-      desc: "Giải pháp chuyên nghiệp cho công ty vừa và nhỏ.",
-      type: "Doanh nghiệp",
-      img: "/templates/business.png",
-    },
-    {
-      title: "Template Nhà hàng",
-      desc: "Website hấp dẫn giúp nhà hàng nổi bật và thu hút khách hàng.",
-      type: "Ẩm thực",
-      img: "/templates/restaurant.png",
-    },
-    {
-      title: "Template Phòng gym",
-      desc: "Giải pháp website hiện đại cho phòng gym & fitness center.",
-      type: "Thể thao",
-      img: "/templates/gym.png",
-    },
-  ];
+  const API = "https://weplant-r8hj.onrender.com/api";
+
+  // Hàm fetch kèm token
+  const authFetch = (url, options = {}) => {
+    const token = localStorage.getItem("authToken") || "";
+    return fetch(`${API}${url}`, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(options.headers || {}),
+      },
+    });
+  };
+
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      try {
+        const res = await authFetch("/templates/getAll", { method: "GET" });
+        if (!res.ok) throw new Error("Không thể lấy danh sách templates!");
+        const result = await res.json();
+        setTemplates(result?.data || []);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTemplates();
+  }, []);
 
   return (
     <div className="font-sans bg-white">
@@ -123,35 +119,55 @@ export default function TemplatesPage() {
 
       {/* Templates Grid */}
       <section className="max-w-6xl mx-auto px-6 mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-        {templates.map((tpl, i) => (
-          <div
-            key={i}
-            className="bg-white shadow rounded-2xl overflow-hidden hover:shadow-lg transition"
-          >
-            <div className="h-40 bg-gray-200">
-              <img
-                src={tpl.img}
-                alt={tpl.title}
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div className="p-4">
-              <h3 className="font-semibold text-lg mb-2">{tpl.title}</h3>
-              <p className="text-gray-600 text-sm mb-2">{tpl.desc}</p>
-              <span className="text-xs text-blue-600 font-medium">
-                {tpl.type}
-              </span>
-              <div className="mt-3">
-                <a
-                  href="#"
-                  className="text-sm text-blue-600 hover:underline font-medium"
+        {loading && <p>Đang tải templates...</p>}
+        {error && <p className="text-red-600">{error}</p>}
+        {!loading &&
+          !error &&
+          templates.map((tpl) => (
+            <div
+              key={tpl.templateId}
+              className="bg-white shadow rounded-2xl overflow-hidden hover:shadow-lg transition"
+            >
+              <Link to={`/templates/${tpl.templateId}`}>
+                <div className="h-40 bg-gray-200 cursor-pointer">
+                  {tpl.images?.length > 0 ? (
+                    <img
+                      src={tpl.images[0].imageUrl}
+                      alt={tpl.templateName}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-full text-gray-500">
+                      Không có ảnh
+                    </div>
+                  )}
+                </div>
+              </Link>
+
+              <div className="p-4">
+                <Link
+                  to={`/templates/${tpl.templateId}`}
+                  className="font-semibold text-lg mb-2 block hover:text-blue-600"
                 >
-                  Xem chi tiết →
-                </a>
+                  {tpl.templateName}
+                </Link>
+                <p className="text-gray-600 text-sm mb-2">
+                  {tpl.description || "Chưa có mô tả"}
+                </p>
+                <span className="text-xs text-blue-600 font-medium">
+                  {tpl.category || "Chưa phân loại"}
+                </span>
+                <div className="mt-3">
+                  <Link
+                    to={`/templates/${tpl.templateId}`}
+                    className="text-sm text-blue-600 hover:underline font-medium"
+                  >
+                    Xem chi tiết →
+                  </Link>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
       </section>
 
       {/* CTA */}

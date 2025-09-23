@@ -123,7 +123,10 @@ export default function AuthenticatedPage() {
               <button className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition">
                 Bắt Đầu Dự Án Mới
               </button>
-              <button className="px-6 py-3 border border-blue-600 text-blue-600 rounded-lg font-medium hover:bg-blue-600 hover:text-white transition">
+              <button
+                onClick={() => navigate("/templates")}
+                className="px-6 py-3 border border-blue-600 text-blue-600 rounded-lg font-medium hover:bg-blue-600 hover:text-white transition"
+              >
                 Khám Phá Template
               </button>
             </div>

@@ -11,6 +11,8 @@ import AdminPage from "./pages/adminPage.jsx";
 import ProfileInteract from "./pages/profileInteract.jsx";
 import ViewTemplates from "./pages/viewTemplates.jsx";
 import PricingPage from "./pages/pricingPage.jsx";
+import TemplateDetailPage from "./pages/templateDetail.jsx";
+import Template2Page from "./pages/templateDetail1.jsx";
 function App() {
   return (
     <BrowserRouter>
@@ -23,6 +25,8 @@ function App() {
         <Route path="/profile/:id" element={<ProfileInteract />} />
         <Route path="/templates" element={<ViewTemplates />} />
         <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/templates/1" element={<TemplateDetailPage />} />
+        <Route path="/templates/2" element={<Template2Page />} />
       </Routes>
     </BrowserRouter>
   );
