@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { Bell } from "lucide-react";
-import { useNavigate } from "react-router-dom"; // 👉 để điều hướng
-import "../App.css"; // Đã import Tailwind CSS
+import { useNavigate } from "react-router-dom";
+import "../App.css";
 
 export default function AdminPage() {
+  const [users, setUsers] = useState([]);
+  const [projects, setProjects] = useState([]);
   const [search, setSearch] = useState("");
   const [accountType, setAccountType] = useState("Tất cả");
   const [sort, setSort] = useState("Tên A-Z");
@@ -11,40 +13,73 @@ export default function AdminPage() {
   const itemsPerPage = 5;
   const navigate = useNavigate();
 
-  // 👉 Kiểm tra quyền truy cập
+  const API = "https://weplant-r8hj.onrender.com/api";
+
+  const authFetch = (url, options = {}) => {
+    const token = localStorage.getItem("authToken") || "";
+    return fetch(url, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(options.headers || {}),
+      },
+    });
+  };
+
+  // Kiểm tra quyền truy cập
   useEffect(() => {
     const token = localStorage.getItem("authToken");
     const role = localStorage.getItem("userRole");
-
     if (!token || role !== "ADMIN") {
-      navigate("/login"); // không có quyền thì đưa về login
+      navigate("/login");
     }
   }, [navigate]);
 
-  // (tạm data test, sau này fetch từ API)
-  const customers = [
-    {
-      id: 1,
-      avatar: "https://via.placeholder.com/40?text=NL",
-      name: "Nguyễn Thị Lan",
-      email: "nguyenlan@email.com",
-      type: "Cá nhân",
-      typeColor: "bg-blue-100 text-blue-600",
-      registerDate: "15/12/2024",
-      projects: 3,
-    },
-    {
-      id: 2,
-      avatar: "https://via.placeholder.com/40?text=AT",
-      name: "Công ty ABC Tech",
-      email: "contact@abctech.com",
-      type: "Doanh nghiệp",
-      typeColor: "bg-purple-100 text-purple-600",
-      registerDate: "10/12/2024",
-      projects: 7,
-    },
-    // ... các user khác
-  ];
+  // Gọi API users + projects
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const resUsers = await authFetch(`${API}/users/getAll`);
+        const dataUsers = await resUsers.json();
+
+        const resProjects = await authFetch(`${API}/projects/getAll`);
+        const dataProjects = await resProjects.json();
+
+        setUsers(dataUsers.data || []);
+        setProjects(dataProjects.data || []);
+      } catch (e) {
+        console.error("Fetch error:", e);
+      }
+    };
+    fetchData();
+  }, []);
+
+  // Ghép user với số dự án
+  const customers = users.map((u) => {
+    const projectCount = projects.filter(
+      (p) => p.userName === u.fullName
+    ).length;
+
+    return {
+      id: u.userId,
+      avatar: `https://via.placeholder.com/40?text=${u.fullName
+        .split(" ")
+        .pop()
+        .charAt(0)}`,
+      name: u.fullName,
+      email: u.email,
+      type: u.role === "ADMIN" ? "Quản trị" : "Người dùng",
+      typeColor:
+        u.role === "ADMIN"
+          ? "bg-red-100 text-red-600"
+          : "bg-blue-100 text-blue-600",
+      registerDate: u.createAt
+        ? new Date(u.createAt).toLocaleDateString("vi-VN")
+        : "-",
+      projects: projectCount,
+    };
+  });
 
   // Lọc + sắp xếp
   const filteredCustomers = customers
@@ -53,7 +88,9 @@ export default function AdminPage() {
         cust.name.toLowerCase().includes(search.toLowerCase()) ||
         cust.email.toLowerCase().includes(search.toLowerCase())
     )
-    .filter((cust) => accountType === "Tất cả" || cust.type === accountType)
+    .filter(
+      (cust) => accountType === "Tất cả" || cust.type === accountType
+    )
     .sort((a, b) =>
       sort === "Tên A-Z"
         ? a.name.localeCompare(b.name)
@@ -127,8 +164,8 @@ export default function AdminPage() {
             className="px-4 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option>Tất cả</option>
-            <option>Cá nhân</option>
-            <option>Doanh nghiệp</option>
+            <option>Người dùng</option>
+            <option>Quản trị</option>
           </select>
           <select
             value={sort}
@@ -207,7 +244,7 @@ export default function AdminPage() {
           {/* Pagination */}
           <div className="flex justify-between items-center w-full">
             <div className="text-sm font-medium text-gray-700">
-              Hiện thị {paginatedCustomers.length} trong tổng số{" "}
+              Hiển thị {paginatedCustomers.length} trong tổng số{" "}
               {filteredCustomers.length} khách hàng
             </div>
             <div className="flex items-center gap-1">
@@ -241,25 +278,6 @@ export default function AdminPage() {
             </div>
           </div>
         </div>
-
-        {/* Footer */}
-        <footer className="mt-auto bg-gray-50 p-4 rounded-lg shadow-sm flex justify-center w-full">
-          <div className="text-sm text-gray-700 text-center">
-            Cần hỗ trợ?
-            <br />
-            Liên hệ qua email:{" "}
-            <a
-              href="mailto:admin@weplant.com"
-              className="text-blue-600 hover:underline"
-            >
-              admin@weplant.com
-            </a>{" "}
-            hoặc số điện thoại:{" "}
-            <a href="tel:0123456789" className="text-blue-600 hover:underline">
-              0123 456 789
-            </a>
-          </div>
-        </footer>
       </main>
     </div>
   );
