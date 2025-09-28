@@ -27,10 +27,11 @@ public class TemplateController {
     }
 
     @PostMapping("/create")
-    public ApiResponse<Void> create(@RequestBody TemplateCreateRequest request) {
-        templateService.create(request);
-        return ApiResponse.<Void>builder()
+    public ApiResponse<Long> create(@RequestBody TemplateCreateRequest request) {
+        Long id = templateService.create(request);
+        return ApiResponse.<Long>builder()
                 .message("Template đã tạo thành công")
+                .data(id)
                 .build();
     }
 

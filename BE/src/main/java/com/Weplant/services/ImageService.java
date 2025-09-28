@@ -1,12 +1,8 @@
 package com.Weplant.services;
 
 import com.Weplant.configurations.SupabaseConfig;
-import com.Weplant.entities.Attachment;
 import com.Weplant.entities.Image;
-import com.Weplant.entities.Project;
 import com.Weplant.entities.Template;
-import com.Weplant.repositories.AttachmentRepository;
-
 import com.Weplant.repositories.ImageRepository;
 import com.Weplant.repositories.TemplateRepository;
 import lombok.RequiredArgsConstructor;

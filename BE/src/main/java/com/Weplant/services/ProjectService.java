@@ -2,7 +2,6 @@ package com.Weplant.services;
 
 import com.Weplant.dtos.requests.ProjectCreateRequest;
 import com.Weplant.dtos.responses.AttachmentUrlResponse;
-import com.Weplant.dtos.responses.ImageUrlResponse;
 import com.Weplant.dtos.responses.ProjectDetailResponse;
 import com.Weplant.entities.Project;
 import com.Weplant.enums.ProjectStatus;

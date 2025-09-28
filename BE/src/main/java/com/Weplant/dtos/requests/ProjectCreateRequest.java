@@ -1,8 +1,6 @@
 package com.Weplant.dtos.requests;
 
 import com.Weplant.enums.ProjectStatus;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
