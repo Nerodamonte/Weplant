@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Mail, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
 import "../App.css";
+
+const API = "https://weplant-r8hj.onrender.com/api";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -12,14 +13,13 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  // Giả lập dữ liệu tài khoản (trong thực tế sẽ gọi API)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:8080/api/auth/login", {
+      const response = await fetch(`${API}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -35,49 +35,27 @@ export default function LoginPage() {
 
       const token = result?.data?.token;
       const userEmail = result?.data?.email;
+      const userRole = result?.data?.role; // 👈 lấy role từ login response
 
-      if (token) {
-        // lưu token
+      if (token && userRole) {
+        // Lưu token & thông tin
         localStorage.setItem("authToken", token);
         localStorage.setItem("isAuthenticated", "true");
         localStorage.setItem("userEmail", userEmail || email);
+        localStorage.setItem("userRole", userRole);
 
         if (remember) {
           localStorage.setItem("rememberMe", "true");
         }
 
-        // 🔥 gọi API getAll để lấy role của user
-        const userRes = await fetch("http://localhost:8080/api/users/getAll", {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!userRes.ok) {
-          throw new Error("Không lấy được thông tin user!");
-        }
-
-        const userData = await userRes.json();
-        const allUsers = userData?.data || [];
-        const currentUser = allUsers.find(
-          (u) => u.email === (userEmail || email)
-        );
-
-        if (!currentUser) {
-          throw new Error("Không tìm thấy user trong hệ thống!");
-        }
-
-        localStorage.setItem("userRole", currentUser.role);
-
         // Điều hướng theo role
-        if (currentUser.role === "ADMIN") {
+        if (userRole === "ADMIN") {
           navigate("/admin");
         } else {
           navigate("/authen");
         }
       } else {
-        setError("Không nhận được token từ server!");
+        setError("Không nhận được token hoặc role từ server!");
       }
     } catch (err) {
       setError(err.message || "Có lỗi xảy ra khi đăng nhập!");
@@ -86,10 +64,9 @@ export default function LoginPage() {
     }
   };
 
-  // Xử lý đăng nhập với Google (giả lập)
+  // Xử lý đăng nhập Google (giả lập)
   const handleGoogleLogin = () => {
     setIsLoading(true);
-    // Giả lập đăng nhập Google thành công
     setTimeout(() => {
       localStorage.setItem("authToken", "google-jwt-token-456");
       localStorage.setItem("isAuthenticated", "true");
@@ -129,8 +106,7 @@ export default function LoginPage() {
               Đăng Nhập Vào Weplant
             </h2>
             <p className="text-gray-500 text-sm mb-6">
-              Đăng nhập để bắt đầu tạo website hoặc khám phá các template của
-              bạn
+              Đăng nhập để bắt đầu tạo website hoặc khám phá các template của bạn
             </p>
 
             {/* Thông báo lỗi */}

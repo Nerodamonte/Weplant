@@ -1,57 +1,59 @@
 import { useState, useEffect } from "react";
-import { Button } from "../components/Button";
-import { Card, CardContent } from "../components/Card";
-import { Link } from "react-router-dom";
-import { Home, Layers, LifeBuoy } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import "../App.css";
-import { useNavigate } from "react-router-dom"; // <--- Thêm dòng này
 
 export default function AuthenticatedPage() {
   const [active, setActive] = useState("Trang Chủ");
   const [user, setUser] = useState(null);
   const [error, setError] = useState("");
   const navigate = useNavigate();
- 
+
+  // === API base & fetch helper (tự gắn Bearer) ===
+  const API = "https://weplant-r8hj.onrender.com/api";
+  const authFetch = (url, options = {}) => {
+    const token = localStorage.getItem("authToken") || "";
+    return fetch(url, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(options.headers || {}),
+      },
+    });
+  };
 
   useEffect(() => {
     const isAuthenticated = localStorage.getItem("isAuthenticated");
     const token = localStorage.getItem("authToken");
     const userEmail = localStorage.getItem("userEmail");
 
+    // Chưa login → đá về /login
     if (!isAuthenticated || !token) {
-      // Nếu chưa login, chuyển về trang login
       navigate("/login");
       return;
     }
-    
-    if (!token || !userEmail) {
+    if (!userEmail) {
       setError("Bạn chưa đăng nhập!");
       return;
     }
 
     const fetchUser = async () => {
       try {
-        const response = await fetch(
-          `http://localhost:8080/api/users/getAll`, // backend không có getByEmail nên fetch tất cả
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error("Lấy thông tin người dùng thất bại!");
+        // Backend chưa có getByEmail → tạm lấy all rồi filter
+        const res = await authFetch(`${API}/users/getAll`);
+        if (res.status === 401) {
+          // token hết hạn → clear và về login
+          localStorage.removeItem("authToken");
+          localStorage.removeItem("isAuthenticated");
+          return navigate("/login");
         }
+        if (!res.ok) throw new Error("Lấy thông tin người dùng thất bại!");
 
-        const result = await response.json();
+        const result = await res.json();
         const allUsers = result?.data || [];
         const currentUser = allUsers.find((u) => u.email === userEmail);
 
-        if (!currentUser) {
-          throw new Error("Không tìm thấy người dùng!");
-        }
+        if (!currentUser) throw new Error("Không tìm thấy người dùng!");
 
         setUser(currentUser);
       } catch (err) {
@@ -60,9 +62,10 @@ export default function AuthenticatedPage() {
     };
 
     fetchUser();
-  }, []);
+  }, [navigate]);
 
-  if (error) return <div className="text-center mt-20 text-red-600">{error}</div>;
+  if (error)
+    return <div className="text-center mt-20 text-red-600">{error}</div>;
   if (!user) return <div className="text-center mt-20">Loading...</div>;
 
   return (
@@ -117,7 +120,10 @@ export default function AuthenticatedPage() {
               <button className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition">
                 Bắt Đầu Dự Án Mới
               </button>
-              <button className="px-6 py-3 border border-blue-600 text-blue-600 rounded-lg font-medium hover:bg-blue-600 hover:text-white transition">
+              <button
+                onClick={() => navigate("/templates")}
+                className="px-6 py-3 border border-blue-600 text-blue-600 rounded-lg font-medium hover:bg-blue-600 hover:text-white transition"
+              >
                 Khám Phá Template
               </button>
             </div>
@@ -131,7 +137,9 @@ export default function AuthenticatedPage() {
                 {user.fullName}
               </h2>
               <p className="text-gray-500">{user.email}</p>
-              {user.phoneNumber && <p className="text-gray-500">{user.phoneNumber}</p>}
+              {user.phoneNumber && (
+                <p className="text-gray-500">{user.phoneNumber}</p>
+              )}
 
               <div className="mt-4 space-y-2 text-sm text-gray-600 w-full">
                 <div className="flex justify-between">
@@ -141,7 +149,10 @@ export default function AuthenticatedPage() {
               </div>
 
               <div className="mt-6 space-y-3 w-full">
-                <button className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition">
+                <button
+                  onClick={() => navigate(`/profile/${user.userId}`)}
+                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition"
+                >
                   Chỉnh Sửa Profile
                 </button>
                 <button className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-100 transition">
@@ -152,8 +163,6 @@ export default function AuthenticatedPage() {
           </div>
         </div>
       </section>
-
-      {/* Các section khác giữ nguyên như Services, Work Process, Templates, Testimonials, CTA, Footer */}
     </div>
   );
 }
