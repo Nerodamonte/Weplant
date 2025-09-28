@@ -15,7 +15,7 @@ export default function ProfileEditPage() {
 
   const [active, setActive] = useState("Profile");
   const [saving, setSaving] = useState(false);
-  const API = "http://localhost:8080/api/users";
+  const API = "https://weplant-r8hj.onrender.com/api/users";
 
   // ---- Helper: fetch kèm Bearer token (key: authToken) ----
   const authFetch = async (url, options = {}) => {

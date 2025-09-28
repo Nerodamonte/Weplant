@@ -52,6 +52,8 @@ export default function AuthenticatedPage() {
         const result = await res.json();
         const allUsers = result?.data || [];
         const currentUser = allUsers.find((u) => u.email === userEmail);
+        localStorage.setItem("userId", String(currentUser.userId));
+        localStorage.setItem("userEmail", currentUser.email); // optional, cho đồng bộ
 
         if (!currentUser) throw new Error("Không tìm thấy người dùng!");
 
@@ -117,7 +119,14 @@ export default function AuthenticatedPage() {
               có của Weplant. Quản lý dự án của bạn ngay hôm nay!
             </p>
             <div className="mt-6 flex space-x-4">
-              <button className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition">
+              <button
+                onClick={() =>
+                  navigate("/create-project", {
+                    state: { userId: user.userId },
+                  })
+                }
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition"
+              >
                 Bắt Đầu Dự Án Mới
               </button>
               <button
