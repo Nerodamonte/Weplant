@@ -1,8 +1,5 @@
 import { useState, useEffect } from "react";
-import { Button } from "../components/Button";
-import { Card, CardContent } from "../components/Card";
 import { Link, useNavigate } from "react-router-dom";
-import { Home, Layers, LifeBuoy } from "lucide-react";
 import "../App.css";
 
 export default function AuthenticatedPage() {
@@ -12,7 +9,7 @@ export default function AuthenticatedPage() {
   const navigate = useNavigate();
 
   // === API base & fetch helper (tự gắn Bearer) ===
-  const API = "http://localhost:8080/api";
+  const API = "https://weplant-r8hj.onrender.com/api";
   const authFetch = (url, options = {}) => {
     const token = localStorage.getItem("authToken") || "";
     return fetch(url, {
