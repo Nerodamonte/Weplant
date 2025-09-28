@@ -1,5 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+
+const API = "https://weplant-r8hj.onrender.com/api";
+
 export default function RegisterPage() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -22,48 +25,47 @@ export default function RegisterPage() {
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (formData.password !== formData.confirmPassword) {
-    setMessage("Mật khẩu xác nhận không khớp!");
-    return;
-  }
-
-  try {
-    const response = await fetch("http://localhost:8080/api/auth/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        fullName: formData.username,
-        email: formData.email,
-        password: formData.password,
-        phoneNumber: formData.phoneNumber,
-      }),
-    });
-
-    let data = null;
-    try {
-      data = await response.json();
-    } catch {}
-
-    if (response.ok) {
-      setMessage("Đăng ký thành công! Đang chuyển hướng...");
-
-      // Sau 3 giây chuyển hướng
-      setTimeout(() => {
-        navigate("/login"); // đổi thành "/authen" nếu đúng route bạn dùng
-      }, 3000);
-    } else {
-      setMessage(data?.message || "Đăng ký thất bại!");
+    if (formData.password !== formData.confirmPassword) {
+      setMessage("Mật khẩu xác nhận không khớp!");
+      return;
     }
-  } catch (error) {
-    console.error("Lỗi:", error);
-    setMessage("Có lỗi kết nối đến server!");
-  }
-};
 
+    try {
+      const response = await fetch(`${API}/auth/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fullName: formData.username,
+          email: formData.email,
+          password: formData.password,
+          phoneNumber: formData.phoneNumber,
+        }),
+      });
+
+      let data = null;
+      try {
+        data = await response.json();
+      } catch (err) {
+        console.warn("Không parse được JSON:", err);
+      }
+
+      if (response.ok) {
+        setMessage("Đăng ký thành công! Đang chuyển hướng...");
+        setTimeout(() => {
+          navigate("/login"); // hoặc /authen tùy route bạn cấu hình
+        }, 2000);
+      } else {
+        setMessage(data?.message || "Đăng ký thất bại!");
+      }
+    } catch (error) {
+      console.error("Lỗi:", error);
+      setMessage("Không kết nối được đến server!");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-blue-700 flex flex-col items-center justify-center">
@@ -75,7 +77,7 @@ export default function RegisterPage() {
         </div>
         <nav className="flex gap-6 text-gray-600 font-medium">
           <a href="/">Trang chủ</a>
-          <a href="#">Templates</a>
+          <a href="/templates">Templates</a>
           <a href="#">Dịch vụ</a>
           <a href="#">Liên hệ</a>
         </nav>
@@ -110,6 +112,7 @@ export default function RegisterPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Username */}
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Tên người dùng
@@ -125,6 +128,7 @@ export default function RegisterPage() {
             />
           </div>
 
+          {/* Email */}
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Email
@@ -140,6 +144,7 @@ export default function RegisterPage() {
             />
           </div>
 
+          {/* Password */}
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Mật khẩu
@@ -154,6 +159,7 @@ export default function RegisterPage() {
             />
           </div>
 
+          {/* Confirm Password */}
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Xác nhận mật khẩu
@@ -168,6 +174,7 @@ export default function RegisterPage() {
             />
           </div>
 
+          {/* Phone Number */}
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Số điện thoại
@@ -183,6 +190,7 @@ export default function RegisterPage() {
             />
           </div>
 
+          {/* Agree Checkbox */}
           <div className="flex items-center gap-2">
             <input
               type="checkbox"
@@ -204,6 +212,7 @@ export default function RegisterPage() {
             </label>
           </div>
 
+          {/* Submit */}
           <button
             type="submit"
             className="w-full bg-blue-500 text-white font-medium py-2 rounded-lg hover:bg-blue-600"
@@ -211,6 +220,7 @@ export default function RegisterPage() {
             Đăng Ký
           </button>
 
+          {/* Message */}
           {message && (
             <p className="text-center text-sm text-red-500 mt-2">{message}</p>
           )}

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import "../App.css";
 import { Link } from "react-router-dom";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export default function TemplatesPage() {
   const [active, setActive] = useState("Template");
@@ -12,8 +13,11 @@ export default function TemplatesPage() {
   const [isChatOpen, setIsChatOpen] = useState(false);
 
   const API = "https://weplant-r8hj.onrender.com/api";
-  const GEMINI_API_KEY = 'AIzaSyBip7sULJoCXfitgcPyWK20j5RIEYI6LtM';
+  const GEMINI_API_KEY = "AIzaSyBip7sULJoCXfitgcPyWK20j5RIEYI6LtM";
 
+  // Khởi tạo Gemini client
+  const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
   // Hàm fetch kèm token
   const authFetch = (url, options = {}) => {
@@ -45,50 +49,29 @@ export default function TemplatesPage() {
     fetchTemplates();
   }, []);
 
-  // Hàm gọi Gemini API để tư vấn với lịch sử cuộc trò chuyện
+  // Hàm gọi Gemini API
   const callGeminiAI = async (input, conversationHistory) => {
     if (!GEMINI_API_KEY) {
       throw new Error("API key của Gemini không được cấu hình!");
     }
 
-    // Xây dựng lịch sử cuộc trò chuyện
+    // Ghép lịch sử chat thành văn bản
     const historyText = conversationHistory
       .map((msg) => `${msg.sender === "user" ? "Người dùng: " : "AI: "}${msg.text}`)
       .join("\n");
 
-    const response = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-goog-api-key": GEMINI_API_KEY,
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                {
-                  text: `Tôi muốn bạn đóng vai trò là một trợ lý AI để tư vấn template website. 
-                  - Đây là lịch sử cuộc trò chuyện: ${historyText}
-                  - Dựa trên lịch sử và câu hỏi mới: "${input}", hãy tiếp tục tư vấn hoặc đặt câu hỏi để làm rõ nếu cần.
-                  - Đề xuất template phù hợp nhất (nếu có) với tên, mô tả, và danh mục.
-                  - Trả lời bằng tiếng Việt, ngắn gọn và thân thiện.
-                  - Nếu không có template phù hợp, hãy gợi ý liên hệ với đội ngũ Weplant để tùy chỉnh.`,
-                },
-              ],
-            },
-          ],
-        }),
-      }
-    );
+    const prompt = `
+      Tôi muốn bạn đóng vai trò là một trợ lý AI để tư vấn template website. 
+      - Đây là lịch sử cuộc trò chuyện: ${historyText}
+      - Dựa trên lịch sử và câu hỏi mới: "${input}", hãy tiếp tục tư vấn hoặc đặt câu hỏi để làm rõ nếu cần.
+      - Đề xuất template phù hợp nhất (nếu có) với tên, mô tả, và danh mục.
+      - Trả lời bằng tiếng Việt, ngắn gọn và thân thiện.
+      - Nếu không có template phù hợp, hãy gợi ý liên hệ với đội ngũ Weplant để tùy chỉnh.
+    `;
 
-    if (!response.ok) {
-      throw new Error("Không thể kết nối với Gemini API! Kiểm tra API key hoặc kết nối mạng.");
-    }
+    const result = await model.generateContent(prompt);
+    const generatedText = result.response.text();
 
-    const data = await response.json();
-    const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!generatedText) {
       throw new Error("Không nhận được phản hồi từ Gemini API!");
     }
@@ -103,19 +86,14 @@ export default function TemplatesPage() {
       return;
     }
 
-    // Thêm tin nhắn của người dùng
     const updatedMessages = [...chatMessages, { sender: "user", text: chatInput }];
     setChatMessages(updatedMessages);
 
     try {
-      // Gọi AI để tư vấn với lịch sử
       const aiResponse = await callGeminiAI(chatInput, updatedMessages);
       setChatMessages((prev) => [...prev, { sender: "ai", text: aiResponse }]);
     } catch (err) {
-      setChatMessages((prev) => [
-        ...prev,
-        { sender: "ai", text: `Lỗi: ${err.message}` },
-      ]);
+      setChatMessages((prev) => [...prev, { sender: "ai", text: `Lỗi: ${err.message}` }]);
     }
 
     setChatInput("");
@@ -133,7 +111,6 @@ export default function TemplatesPage() {
           <div className="flex gap-8">
             {[
               { label: "Trang Chủ", path: "/" },
-              { label: "Dịch Vụ", path: "/services" },
               { label: "Template", path: "/templates" },
               { label: "Về Chúng Tôi", path: "/about" },
               { label: "Liên Hệ", path: "/contact" },
@@ -164,9 +141,10 @@ export default function TemplatesPage() {
         <button
           onClick={() => {
             setIsChatOpen(true);
-            // Chỉ chào hỏi lần đầu khi mở chatbox
             if (chatMessages.length === 0) {
-              setChatMessages([{ sender: "ai", text: "Chào bạn! Bạn muốn dùng template cho mục đích gì? (Ví dụ: bán hàng, blog, portfolio, v.v.)" }]);
+              setChatMessages([
+                { sender: "ai", text: "Chào bạn! Bạn muốn dùng template cho mục đích gì? (Ví dụ: bán hàng, blog, portfolio, v.v.)" },
+              ]);
             }
           }}
           className="mt-4 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700"
@@ -184,9 +162,7 @@ export default function TemplatesPage() {
               {chatMessages.map((msg, index) => (
                 <div
                   key={index}
-                  className={`mb-2 ${
-                    msg.sender === "user" ? "text-right" : "text-left"
-                  }`}
+                  className={`mb-2 ${msg.sender === "user" ? "text-right" : "text-left"}`}
                 >
                   <span
                     className={`inline-block p-2 rounded-lg ${
@@ -313,10 +289,7 @@ export default function TemplatesPage() {
         <p className="text-gray-600 mb-6">
           Hãy để đội ngũ thiết kế chuyên nghiệp của Weplant hoặc AI của chúng tôi tạo ra mẫu website riêng cho bạn.
         </p>
-        <button
-          
-          className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700"
-        >
+        <button className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700">
           Tạo dự án tùy chỉnh
         </button>
       </section>

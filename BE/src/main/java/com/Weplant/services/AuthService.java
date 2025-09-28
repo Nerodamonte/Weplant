@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -33,7 +32,15 @@ public class AuthService {
 
         String token = jwtUtil.generateToken(user.getUsername());
 
-        return new LoginResponse(token);
+        return LoginResponse.builder()
+                .token(token)
+                .userId(user.getUserId())
+                .fullName(user.getFullName())
+                .email(user.getEmail())
+                .phoneNumber(user.getPhoneNumber())
+                .role(user.getRole())
+                .createAt(user.getCreateAt())
+                .build();
     }
 
     public LoginResponse register(RegisterRequest request){
@@ -42,7 +49,6 @@ public class AuthService {
         }
 
         User user = new User();
-
         user.setEmail(request.getEmail());
         user.setFullName(request.getFullName());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
@@ -56,6 +62,12 @@ public class AuthService {
 
         return LoginResponse.builder()
                 .token(token)
+                .userId(user.getUserId())
+                .fullName(user.getFullName())
+                .email(user.getEmail())
+                .phoneNumber(user.getPhoneNumber())
+                .role(user.getRole())
+                .createAt(user.getCreateAt())
                 .build();
     }
 }

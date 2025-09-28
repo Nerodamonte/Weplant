@@ -1,8 +1,5 @@
 package com.Weplant.dtos.responses;
 
-import com.Weplant.entities.PackageEntity;
-import com.Weplant.entities.Template;
-import com.Weplant.entities.User;
 import com.Weplant.enums.ProjectStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

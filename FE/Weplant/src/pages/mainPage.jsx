@@ -27,7 +27,6 @@ export default function App() {
           <div className="flex gap-8">
             {[
               { label: "Trang Chủ", path: "/" },
-              { label: "Dịch Vụ", path: "/services" },
               { label: "Template", path: "/templates" },
               { label: "Về Chúng Tôi", path: "/about" },
               { label: "Liên Hệ", path: "/contact" },
