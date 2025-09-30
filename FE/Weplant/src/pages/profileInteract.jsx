@@ -3,8 +3,11 @@ import "../App.css";
 import { Link, useParams, useNavigate } from "react-router-dom";
 
 export default function ProfileEditPage() {
-  const { id } = useParams(); // /profile/:id
+  const { id } = useParams(); // /profile/:id (chỉ dùng cho form profile)
   const navigate = useNavigate();
+
+  const [activeTop, setActiveTop] = useState("Trang Chủ"); // navbar
+  const [activeTab, setActiveTab] = useState("profile"); // profile | projects
 
   const [profile, setProfile] = useState({
     fullName: "",
@@ -12,10 +15,10 @@ export default function ProfileEditPage() {
     phone: "",
     role: "CUSTOMER",
   });
-
-  const [active, setActive] = useState("Profile");
   const [saving, setSaving] = useState(false);
-  const API = "http://localhost:8080/api/users";
+
+  const API_USERS = "https://weplant-r8hj.onrender.com/api/users";
+  const API_PROJECTS = "https://weplant-r8hj.onrender.com/api/projects";
 
   // ---- Helper: fetch kèm Bearer token (key: authToken) ----
   const authFetch = async (url, options = {}) => {
@@ -33,20 +36,19 @@ export default function ProfileEditPage() {
     return res;
   };
 
-  // ---- Load profile ----
+  // ---- Guard + load profile ----
   useEffect(() => {
-    if (!id) return;
-
     const token = localStorage.getItem("authToken");
     const isAuthenticated = localStorage.getItem("isAuthenticated");
     if (!token || !isAuthenticated) {
       navigate("/login");
       return;
     }
+    if (!id) return;
 
     (async () => {
       try {
-        const res = await authFetch(`${API}/user/${id}`);
+        const res = await authFetch(`${API_USERS}/user/${id}`);
         if (res.status === 401 || res.status === 403) {
           localStorage.removeItem("authToken");
           localStorage.removeItem("isAuthenticated");
@@ -88,9 +90,7 @@ export default function ProfileEditPage() {
 
     try {
       setSaving(true);
-      console.log("[UPDATE PROFILE] PUT", `${API}/userUpdate/${id}`, body);
-
-      const res = await authFetch(`${API}/userUpdate/${id}`, {
+      const res = await authFetch(`${API_USERS}/userUpdate/${id}`, {
         method: "PUT",
         body: JSON.stringify(body),
       });
@@ -104,7 +104,6 @@ export default function ProfileEditPage() {
         navigate("/login");
         return;
       }
-
       if (!res.ok) {
         const text = await res.text().catch(() => "");
         console.error("Update failed:", text);
@@ -120,6 +119,69 @@ export default function ProfileEditPage() {
       setSaving(false);
     }
   };
+
+  // ====== PROJECTS: chỉ fetch getAll, KHÔNG lọc user ======
+  const [projects, setProjects] = useState([]);
+  const [loadingProjects, setLoadingProjects] = useState(true);
+  const [projErr, setProjErr] = useState("");
+
+  useEffect(() => {
+    if (activeTab !== "projects") return;
+
+    const token = localStorage.getItem("authToken");
+    const isAuthenticated = localStorage.getItem("isAuthenticated");
+    if (!token || !isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+
+    let mounted = true;
+    (async () => {
+      try {
+        setLoadingProjects(true);
+        setProjErr("");
+
+        const res = await authFetch(`${API_PROJECTS}/getAll`);
+        if (res.status === 401 || res.status === 403) {
+          localStorage.removeItem("authToken");
+          localStorage.removeItem("isAuthenticated");
+          navigate("/login");
+          return;
+        }
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const apiRes = await res.json().catch(() => ({}));
+        const list = apiRes?.data || [];
+
+        // Chuẩn hoá rồi SHOW TẤT CẢ
+        const normalized = list.map((p) => ({
+          id: p.projectId ?? p.project_id,
+          name: p.projectName ?? p.project_name,
+          description: p.description,
+          status: p.status,
+          createdAt:
+            p.createdAt ??
+            p.created_at ??
+            p.createdDate ??
+            p.created_date ??
+            null,
+        }));
+
+        if (mounted) setProjects(normalized);
+      } catch (e) {
+        if (mounted) {
+          setProjErr(e.message || "Không tải được danh sách dự án.");
+          setProjects([]);
+        }
+      } finally {
+        if (mounted) setLoadingProjects(false);
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
+  }, [activeTab, navigate]);
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
@@ -142,9 +204,9 @@ export default function ProfileEditPage() {
               <Link
                 key={item.label}
                 to={item.path}
-                onClick={() => setActive(item.label)}
+                onClick={() => setActiveTop(item.label)}
                 className={`text-sm font-medium transition ${
-                  active === item.label ? "text-blue-600" : "text-gray-700"
+                  activeTop === item.label ? "text-blue-600" : "text-gray-700"
                 } hover:text-blue-600`}
               >
                 {item.label}
@@ -155,95 +217,197 @@ export default function ProfileEditPage() {
       </nav>
 
       {/* Content */}
-      <main className="flex-grow max-w-3xl mx-auto w-full px-4 py-8 mt-24">
-        <h2 className="text-2xl font-bold mb-6 text-gray-800 text-center">
-          Chỉnh Sửa Thông Tin Profile
+      <main className="flex-grow max-w-5xl mx-auto w-full px-4 py-8 mt-24">
+        <h2 className="text-2xl font-bold mb-4 text-gray-800 text-center">
+          Hồ Sơ & Dự Án
         </h2>
 
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white shadow-md rounded-lg p-6 space-y-6"
-        >
-          {/* Full Name */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Họ và tên
-            </label>
-            <input
-              type="text"
-              name="fullName"
-              value={profile.fullName}
-              onChange={handleChange}
-              className="mt-1 w-full border rounded-lg px-3 py-2"
-              required
-            />
-          </div>
+        {/* Tabs */}
+        <div className="flex gap-2 justify-center mb-6">
+          <button
+            onClick={() => setActiveTab("profile")}
+            className={`px-4 py-2 rounded-xl text-sm font-medium ${
+              activeTab === "profile"
+                ? "bg-blue-600 text-white"
+                : "bg-white text-gray-700 border"
+            }`}
+          >
+            Thông tin
+          </button>
+          <button
+            onClick={() => setActiveTab("projects")}
+            className={`px-4 py-2 rounded-xl text-sm font-medium ${
+              activeTab === "projects"
+                ? "bg-blue-600 text-white"
+                : "bg-white text-gray-700 border"
+            }`}
+          >
+            Dự án của tôi
+          </button>
+        </div>
 
-          {/* Email */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Email
-            </label>
-            <input
-              type="email"
-              name="email"
-              value={profile.email}
-              onChange={handleChange}
-              disabled
-              className="mt-1 w-full border rounded-lg px-3 py-2"
-            />
-          </div>
+        {activeTab === "profile" ? (
+          // ===== PROFILE FORM =====
+          <form
+            onSubmit={handleSubmit}
+            className="bg-white shadow-md rounded-lg p-6 space-y-6 max-w-3xl mx-auto"
+          >
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Họ và tên
+              </label>
+              <input
+                type="text"
+                name="fullName"
+                value={profile.fullName}
+                onChange={handleChange}
+                className="mt-1 w-full border rounded-lg px-3 py-2"
+                required
+              />
+            </div>
 
-          {/* Phone */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Số điện thoại
-            </label>
-            <input
-              type="text"
-              name="phone"
-              value={profile.phone}
-              onChange={handleChange}
-              className="mt-1 w-full border rounded-lg px-3 py-2"
-            />
-          </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Email
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={profile.email}
+                onChange={handleChange}
+                disabled
+                className="mt-1 w-full border rounded-lg px-3 py-2"
+              />
+            </div>
 
-          {/* Role */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Quyền
-            </label>
-            <input
-              type="text"
-              name="role"
-              value={profile.role}
-              disabled
-              className="mt-1 w-full border rounded-lg px-3 py-2 bg-gray-100 text-gray-600 cursor-not-allowed"
-            />
-          </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Số điện thoại
+              </label>
+              <input
+                type="text"
+                name="phone"
+                value={profile.phone}
+                onChange={handleChange}
+                className="mt-1 w-full border rounded-lg px-3 py-2"
+              />
+            </div>
 
-          <div className="flex gap-3">
-            <button
-              type="submit"
-              disabled={saving}
-              className={`px-4 py-2 rounded-lg text-white transition ${
-                saving
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700"
-              }`}
-            >
-              {saving ? "Đang lưu..." : "Lưu Thay Đổi"}
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate(-1)}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
-            >
-              Hủy
-            </button>
-          </div>
-        </form>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Quyền
+              </label>
+              <input
+                type="text"
+                name="role"
+                value={profile.role}
+                disabled
+                className="mt-1 w-full border rounded-lg px-3 py-2 bg-gray-100 text-gray-600 cursor-not-allowed"
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                type="submit"
+                disabled={saving}
+                className={`px-4 py-2 rounded-lg text-white transition ${
+                  saving
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-blue-600 hover:bg-blue-700"
+                }`}
+              >
+                {saving ? "Đang lưu..." : "Lưu Thay Đổi"}
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate(-1)}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+              >
+                Hủy
+              </button>
+            </div>
+          </form>
+        ) : (
+          // ===== PROJECTS LIST (show all) =====
+          <section className="bg-white shadow-sm rounded-lg p-5">
+            {loadingProjects ? (
+              <p className="text-gray-500">Đang tải dự án…</p>
+            ) : projErr ? (
+              <p className="text-red-600">{projErr}</p>
+            ) : projects.length === 0 ? (
+              <p className="text-gray-600">Chưa có dự án nào.</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                {projects.map((p) => (
+                  <ProjectCard key={p.id} p={p} />
+                ))}
+              </div>
+            )}
+          </section>
+        )}
       </main>
     </div>
   );
+}
+
+/* ---------- helpers & small components ---------- */
+
+function ProjectCard({ p }) {
+  const badge = statusBadge(p.status);
+  return (
+    <div className="border rounded-xl p-4 shadow-sm">
+      <div className="flex items-start justify-between">
+        <h3 className="font-semibold text-gray-800">
+          {p.name || "Chưa đặt tên"}
+        </h3>
+        <span className={`text-xs px-2 py-1 rounded-full ${badge.cls}`}>
+          {badge.text}
+        </span>
+      </div>
+      <p className="text-sm text-gray-600 mt-2 line-clamp-3">
+        {p.description || "—"}
+      </p>
+
+      <div className="mt-4 flex items-center gap-2 text-xs text-gray-500">
+        <span>📅</span>
+        <span>Ngày gửi: {formatDate(p.createdAt)}</span>
+      </div>
+
+      <div className="mt-4 flex gap-2">
+        <button className="flex-1 bg-blue-600 text-white text-sm rounded-lg px-3 py-2 hover:bg-blue-700">
+          Xem Chi Tiết
+        </button>
+        <button className="flex-1 bg-gray-100 text-gray-800 text-sm rounded-lg px-3 py-2 hover:bg-gray-200">
+          Chỉnh Sửa Yêu Cầu
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function statusBadge(s) {
+  const val = (s || "").toUpperCase();
+  switch (val) {
+    case "PENDING":
+      return { text: "Đang chờ duyệt", cls: "bg-yellow-100 text-yellow-700" };
+    case "DESIGNING":
+    case "IN_PROGRESS":
+      return { text: "Đang thiết kế", cls: "bg-blue-100 text-blue-700" };
+    case "COMPLETED":
+      return { text: "Hoàn thành", cls: "bg-green-100 text-green-700" };
+    case "CANCELLED":
+      return { text: "Đã hủy", cls: "bg-gray-200 text-gray-700" };
+    default:
+      return { text: val || "Không rõ", cls: "bg-slate-100 text-slate-700" };
+  }
+}
+
+function formatDate(d) {
+  if (!d) return "—";
+  try {
+    const dt = new Date(d);
+    return dt.toLocaleDateString("vi-VN");
+  } catch {
+    return String(d);
+  }
 }

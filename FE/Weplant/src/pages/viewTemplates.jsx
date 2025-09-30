@@ -57,7 +57,9 @@ export default function TemplatesPage() {
 
     // Ghép lịch sử chat thành văn bản
     const historyText = conversationHistory
-      .map((msg) => `${msg.sender === "user" ? "Người dùng: " : "AI: "}${msg.text}`)
+      .map(
+        (msg) => `${msg.sender === "user" ? "Người dùng: " : "AI: "}${msg.text}`
+      )
       .join("\n");
 
     const prompt = `
@@ -82,18 +84,27 @@ export default function TemplatesPage() {
   // Hàm xử lý chat submit
   const handleChatSubmit = async () => {
     if (!chatInput.trim()) {
-      setChatMessages([...chatMessages, { sender: "ai", text: "Vui lòng nhập ý tưởng hoặc câu hỏi!" }]);
+      setChatMessages([
+        ...chatMessages,
+        { sender: "ai", text: "Vui lòng nhập ý tưởng hoặc câu hỏi!" },
+      ]);
       return;
     }
 
-    const updatedMessages = [...chatMessages, { sender: "user", text: chatInput }];
+    const updatedMessages = [
+      ...chatMessages,
+      { sender: "user", text: chatInput },
+    ];
     setChatMessages(updatedMessages);
 
     try {
       const aiResponse = await callGeminiAI(chatInput, updatedMessages);
       setChatMessages((prev) => [...prev, { sender: "ai", text: aiResponse }]);
     } catch (err) {
-      setChatMessages((prev) => [...prev, { sender: "ai", text: `Lỗi: ${err.message}` }]);
+      setChatMessages((prev) => [
+        ...prev,
+        { sender: "ai", text: `Lỗi: ${err.message}` },
+      ]);
     }
 
     setChatInput("");
@@ -143,13 +154,16 @@ export default function TemplatesPage() {
             setIsChatOpen(true);
             if (chatMessages.length === 0) {
               setChatMessages([
-                { sender: "ai", text: "Chào bạn! Bạn muốn dùng template cho mục đích gì? (Ví dụ: bán hàng, blog, portfolio, v.v.)" },
+                {
+                  sender: "ai",
+                  text: "Chào bạn! Bạn muốn dùng template cho mục đích gì? (Ví dụ: bán hàng, blog, portfolio, v.v.)",
+                },
               ]);
             }
           }}
           className="mt-4 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700"
         >
-          Chat với AI
+          Chat với AI tư vấn
         </button>
       </section>
 
@@ -162,7 +176,9 @@ export default function TemplatesPage() {
               {chatMessages.map((msg, index) => (
                 <div
                   key={index}
-                  className={`mb-2 ${msg.sender === "user" ? "text-right" : "text-left"}`}
+                  className={`mb-2 ${
+                    msg.sender === "user" ? "text-right" : "text-left"
+                  }`}
                 >
                   <span
                     className={`inline-block p-2 rounded-lg ${
@@ -287,7 +303,8 @@ export default function TemplatesPage() {
           Không tìm thấy template phù hợp?
         </h2>
         <p className="text-gray-600 mb-6">
-          Hãy để đội ngũ thiết kế chuyên nghiệp của Weplant hoặc AI của chúng tôi tạo ra mẫu website riêng cho bạn.
+          Hãy để đội ngũ thiết kế chuyên nghiệp của Weplant hoặc AI của chúng
+          tôi tạo ra mẫu website riêng cho bạn.
         </p>
         <button className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700">
           Tạo dự án tùy chỉnh
