@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const API = "https://weplant-r8hj.onrender.com/api";
+const API = "http://45.252.248.204:8080/api";
 
 export default function RegisterPage() {
   const navigate = useNavigate();

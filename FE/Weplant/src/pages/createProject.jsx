@@ -25,7 +25,7 @@ export default function StartProjectForm({ onSubmit }) {
   const [loadingTpls, setLoadingTpls] = useState(true);
   const [tplError, setTplError] = useState("");
 
-  const API = "https://weplant-r8hj.onrender.com/api";
+  const API = "http://45.252.248.204:8080/api";
   const navigate = useNavigate();
   const { state } = useLocation();
 

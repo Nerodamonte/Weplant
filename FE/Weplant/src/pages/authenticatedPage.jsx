@@ -8,7 +8,7 @@ export default function AuthenticatedPage() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const API = "https://weplant-r8hj.onrender.com/api";
+  const API = "http://45.252.248.204:8080/api";
   const authFetch = (url, options = {}) => {
     const token = localStorage.getItem("authToken") || "";
     return fetch(url, {

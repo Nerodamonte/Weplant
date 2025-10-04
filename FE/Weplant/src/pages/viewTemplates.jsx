@@ -12,7 +12,7 @@ export default function TemplatesPage() {
   const [chatMessages, setChatMessages] = useState([]);
   const [isChatOpen, setIsChatOpen] = useState(false);
 
-  const API = "https://weplant-r8hj.onrender.com/api";
+  const API = "http://45.252.248.204:8080/api";
   const GEMINI_API_KEY = "AIzaSyBip7sULJoCXfitgcPyWK20j5RIEYI6LtM";
 
   // Khởi tạo Gemini client
