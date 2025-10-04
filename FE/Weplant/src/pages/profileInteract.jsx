@@ -3,7 +3,7 @@ import "../App.css";
 import { Link, useParams, useNavigate } from "react-router-dom";
 
 export default function ProfileEditPage() {
-  const { id } = useParams(); // /profile/:id (chỉ dùng cho form profile)
+  const { id } = useParams(); // /profile/:id (userId)
   const navigate = useNavigate();
 
   const [activeTop, setActiveTop] = useState("Trang Chủ"); // navbar
@@ -120,10 +120,16 @@ export default function ProfileEditPage() {
     }
   };
 
-  // ====== PROJECTS: chỉ fetch getAll, KHÔNG lọc user ======
+  // ====== PROJECTS (getProjectByUserId) ======
   const [projects, setProjects] = useState([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
   const [projErr, setProjErr] = useState("");
+
+  // Modal chi tiết
+  const [openDetail, setOpenDetail] = useState(false);
+  const [detail, setDetail] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailErr, setDetailErr] = useState("");
 
   useEffect(() => {
     if (activeTab !== "projects") return;
@@ -135,13 +141,24 @@ export default function ProfileEditPage() {
       return;
     }
 
+    const userIdForProjects = id || localStorage.getItem("userId");
+    if (!userIdForProjects) {
+      setProjErr("Không xác định được userId.");
+      setProjects([]);
+      setLoadingProjects(false);
+      return;
+    }
+
     let mounted = true;
     (async () => {
       try {
         setLoadingProjects(true);
         setProjErr("");
 
-        const res = await authFetch(`${API_PROJECTS}/getAll`);
+        // fetch theo userId
+        const res = await authFetch(
+          `${API_PROJECTS}/getProjectByUserId/${userIdForProjects}`
+        );
         if (res.status === 401 || res.status === 403) {
           localStorage.removeItem("authToken");
           localStorage.removeItem("isAuthenticated");
@@ -153,18 +170,18 @@ export default function ProfileEditPage() {
         const apiRes = await res.json().catch(() => ({}));
         const list = apiRes?.data || [];
 
-        // Chuẩn hoá rồi SHOW TẤT CẢ
+        // CHUẨN HOÁ theo ProjectDetailResponse LIST (nếu BE trả giống detail)
         const normalized = list.map((p) => ({
           id: p.projectId ?? p.project_id,
           name: p.projectName ?? p.project_name,
-          description: p.description,
-          status: p.status,
-          createdAt:
-            p.createdAt ??
-            p.created_at ??
-            p.createdDate ??
-            p.created_date ??
-            null,
+          description: p.description ?? "",
+          status: p.status ?? "",
+          // map thêm các tên hiển thị để có thể xài trên card nếu muốn
+          userName: p.userName ?? p.user_name ?? "",
+          packageName: p.packageName ?? p.package_name ?? "",
+          templateName: p.templateName ?? p.template_name ?? "",
+          createdAt: p.createAt ?? p.createdAt ?? p.created_at ?? null,
+          updatedAt: p.updatedAt ?? p.updated_at ?? null,
         }));
 
         if (mounted) setProjects(normalized);
@@ -181,7 +198,61 @@ export default function ProfileEditPage() {
     return () => {
       mounted = false;
     };
-  }, [activeTab, navigate]);
+  }, [activeTab, id, navigate]);
+
+  // ====== mở modal chi tiết: GET /getProjectById/{projectId} ======
+  const handleViewDetail = async (projectId) => {
+    try {
+      setDetail(null);
+      setDetailErr("");
+      setDetailLoading(true);
+      setOpenDetail(true);
+
+      const res = await authFetch(
+        `${API_PROJECTS}/getProjectById/${projectId}`
+      );
+      if (res.status === 401 || res.status === 403) {
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("isAuthenticated");
+        navigate("/login");
+        return;
+      }
+      if (!res.ok) {
+        const txt = await res.text().catch(() => "");
+        throw new Error(txt || `HTTP ${res.status}`);
+      }
+
+      const json = await res.json().catch(() => ({}));
+      const d = json?.data || {};
+
+      // Chuẩn hoá đúng ProjectDetailResponse
+      const normalized = {
+        id: d.projectId ?? d.project_id,
+        name: d.projectName ?? d.project_name,
+        description: d.description ?? "",
+        status: d.status ?? "",
+        userName: d.userName ?? d.user_name ?? "—",
+        packageName: d.packageName ?? d.package_name ?? "—",
+        templateName: d.templateName ?? d.template_name ?? "—",
+        createdAt: d.createAt ?? d.createdAt ?? d.created_at ?? null,
+        updatedAt: d.updatedAt ?? d.updated_at ?? null,
+        attachments: Array.isArray(d.attachmentUrls) ? d.attachmentUrls : [],
+      };
+
+      setDetail(normalized);
+    } catch (e) {
+      setDetailErr(e.message || "Không lấy được chi tiết dự án.");
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
+  const closeModal = () => {
+    setOpenDetail(false);
+    setDetail(null);
+    setDetailErr("");
+    setDetailLoading(false);
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
@@ -328,31 +399,136 @@ export default function ProfileEditPage() {
             </div>
           </form>
         ) : (
-          // ===== PROJECTS LIST (show all) =====
+          // ===== PROJECTS LIST =====
           <section className="bg-white shadow-sm rounded-lg p-5">
             {loadingProjects ? (
               <p className="text-gray-500">Đang tải dự án…</p>
             ) : projErr ? (
               <p className="text-red-600">{projErr}</p>
             ) : projects.length === 0 ? (
-              <p className="text-gray-600">Chưa có dự án nào.</p>
+              <p className="text-gray-600">Bạn chưa có dự án nào.</p>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                 {projects.map((p) => (
-                  <ProjectCard key={p.id} p={p} />
+                  <ProjectCard
+                    key={p.id}
+                    p={p}
+                    onView={() => handleViewDetail(p.id)}
+                  />
                 ))}
               </div>
             )}
           </section>
         )}
       </main>
+
+      {/* ======= MODAL: Project Detail ======= */}
+      {openDetail && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* overlay */}
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={closeModal}
+            aria-hidden="true"
+          />
+          {/* dialog */}
+          <div className="relative z-10 w-[92%] max-w-2xl bg-white rounded-2xl shadow-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Chi Tiết Dự Án</h3>
+              <button
+                className="px-3 py-1 rounded-lg bg-gray-100 hover:bg-gray-200"
+                onClick={closeModal}
+              >
+                Đóng
+              </button>
+            </div>
+
+            {detailLoading ? (
+              <p className="text-gray-500">Đang tải chi tiết…</p>
+            ) : detailErr ? (
+              <p className="text-red-600">{detailErr}</p>
+            ) : !detail ? (
+              <p className="text-gray-600">Không có dữ liệu.</p>
+            ) : (
+              <div className="space-y-4">
+                {/* Grid các ô thông tin */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <BoxRow label="Mã dự án" value={detail.id} />
+                  <BoxRow label="Trạng thái" value={detail.status || "—"} />
+                  <BoxRow
+                    label="Tên dự án"
+                    value={detail.name || "—"}
+                    className="md:col-span-2"
+                  />
+                  <BoxRow label="Người dùng" value={detail.userName || "—"} />
+                  <BoxRow
+                    label="Gói dịch vụ"
+                    value={detail.packageName || "—"}
+                  />
+                  <BoxRow label="Template" value={detail.templateName || "—"} />
+                  <BoxRow
+                    label="Ngày tạo"
+                    value={formatDate(detail.createdAt)}
+                  />
+                </div>
+
+                {/* Mô tả */}
+                <div className="border rounded-lg p-3 bg-gray-50">
+                  <div className="text-xs font-medium text-gray-500 mb-1">
+                    Mô tả
+                  </div>
+                  <div className="text-sm text-gray-800 whitespace-pre-line">
+                    {detail.description || "—"}
+                  </div>
+                </div>
+
+                {/* Đính kèm */}
+                <div className="border rounded-lg p-3 bg-gray-50">
+                  <div className="text-xs font-medium text-gray-500 mb-2">
+                    Tệp đính kèm
+                  </div>
+                  {detail.attachments?.length ? (
+                    <ul className="list-disc pl-5 space-y-1">
+                      {detail.attachments.map((a, i) => (
+                        <li key={i} className="text-sm">
+                          {a.fileName ? (
+                            <a
+                              href={a.url || a.fileUrl || "#"}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-blue-600 hover:underline break-words"
+                            >
+                              {a.fileName}
+                            </a>
+                          ) : (
+                            <a
+                              href={a.url || a.fileUrl || "#"}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-blue-600 hover:underline break-words"
+                            >
+                              Tệp #{i + 1}
+                            </a>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="text-sm text-gray-600">—</div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 /* ---------- helpers & small components ---------- */
 
-function ProjectCard({ p }) {
+function ProjectCard({ p, onView }) {
   const badge = statusBadge(p.status);
   return (
     <div className="border rounded-xl p-4 shadow-sm">
@@ -374,13 +550,25 @@ function ProjectCard({ p }) {
       </div>
 
       <div className="mt-4 flex gap-2">
-        <button className="flex-1 bg-blue-600 text-white text-sm rounded-lg px-3 py-2 hover:bg-blue-700">
+        <button
+          onClick={onView}
+          className="flex-1 bg-blue-600 text-white text-sm rounded-lg px-3 py-2 hover:bg-blue-700"
+        >
           Xem Chi Tiết
         </button>
         <button className="flex-1 bg-gray-100 text-gray-800 text-sm rounded-lg px-3 py-2 hover:bg-gray-200">
           Chỉnh Sửa Yêu Cầu
         </button>
       </div>
+    </div>
+  );
+}
+
+function BoxRow({ label, value, className = "" }) {
+  return (
+    <div className={`border rounded-lg p-3 bg-gray-50 ${className}`}>
+      <div className="text-xs font-medium text-gray-500 mb-1">{label}</div>
+      <div className="text-sm text-gray-800 break-words">{value ?? "—"}</div>
     </div>
   );
 }
