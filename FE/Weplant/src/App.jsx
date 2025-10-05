@@ -18,6 +18,7 @@ import Contact from "./pages/Contact.jsx";
 import CreateProject from "./pages/createProject.jsx";
 import ForgotPasswordPage from "./pages/forgetPassword.jsx";
 import ResetPasswordPage from "./pages/resetPasswordPage.jsx";
+import ActivateAccountPage from "./pages/activeAccount.jsx";
 function App() {
   return (
     <BrowserRouter>
@@ -37,6 +38,7 @@ function App() {
         <Route path="/create-project" element={<CreateProject />} />
         <Route path="/forget-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/activate-account" element={<ActivateAccountPage />} />
       </Routes>
     </BrowserRouter>
   );
