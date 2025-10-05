@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import logo from "../assets/logo.png";
 const API = "http://45.252.248.204:8080/api";
 
 export default function RegisterPage() {
@@ -80,7 +80,7 @@ export default function RegisterPage() {
       {/* Header */}
       <header className="w-full flex justify-between items-center px-8 py-4 bg-white shadow-sm fixed top-0">
         <div className="flex items-center gap-2">
-          <img src="/logo.png" alt="Weplant Logo" className="h-6" />
+          <img src={logo} alt="Weplant Logo" className="h-16 w-auto object-contain" />
           <span className="font-bold text-lg text-gray-700">Weplant</span>
         </div>
         <nav className="flex gap-6 text-gray-600 font-medium">
@@ -256,9 +256,9 @@ export default function RegisterPage() {
           <p>Cần hỗ trợ?</p>
           <p>
             <a href="mailto:support@weplant.com" className="text-white">
-              support@weplant.com
+            contact.weplant@gmail.com
             </a>{" "}
-            | 0123 456 789
+            | 094 7722102
           </p>
         </div>
         <div className="mt-6 py-6 bg-gray-900 text-white">

@@ -271,8 +271,8 @@ export default function Template1Page() {
           <div>
             <div className={`font-semibold ${theme === "dark" ? "text-white" : "text-gray-900"}`}>Hỗ trợ</div>
             <ul className="mt-3 space-y-2 text-sm">
-              <li className={`${theme === "dark" ? "text-gray-400" : "text-gray-500"}`}>support@weplant.com</li>
-              <li className={`${theme === "dark" ? "text-gray-400" : "text-gray-500"}`}>+84 324 456 789</li>
+              <li className={`${theme === "dark" ? "text-gray-400" : "text-gray-500"}`}>contact.weplant@gmail.com</li>
+              <li className={`${theme === "dark" ? "text-gray-400" : "text-gray-500"}`}>+94 772 2102</li>
             </ul>
           </div>
         </div>
