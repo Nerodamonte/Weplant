@@ -49,8 +49,38 @@ export default function TemplatesPage() {
     fetchTemplates();
   }, []);
 
-  // Hàm gọi Gemini API
-  const callGeminiAI = async (input, conversationHistory) => {
+  // Hàm parse response của AI để tạo link clickable
+  const parseAIResponse = (text) => {
+    // Tìm pattern: "Đề xuất template: [Tên] với ID [số]."
+    const match = text.match(/Đề xuất template:\s*"([^"]+)"\s*với ID\s*(\d+)/i);
+    if (match) {
+      const name = match[1];
+      const id = match[2];
+      // Thay thế phần đề xuất bằng text + link
+      const updatedText = text.replace(
+        /Đề xuất template:\s*"[^"]+"\s*với ID\s*\d+\./i,
+        `Đề xuất template: "${name}". `
+      );
+      return (
+        <span>
+          {updatedText}
+          <Link 
+            to={`/templates/${id}`} 
+            className="text-blue-500 underline font-medium hover:text-blue-700"
+            target="_blank" 
+            rel="noopener noreferrer"
+          >
+            Nhấn vào đây để xem chi tiết {name}
+          </Link>
+          .
+        </span>
+      );
+    }
+    return <span>{text}</span>;
+  };
+
+  // Hàm gọi Gemini API - Updated prompt để format đề xuất rõ ràng
+  const callGeminiAI = async (input, conversationHistory, templates) => {
     if (!GEMINI_API_KEY) {
       throw new Error("API key của Gemini không được cấu hình!");
     }
@@ -62,11 +92,21 @@ export default function TemplatesPage() {
       )
       .join("\n");
 
+    // Format templates thành text dễ đọc cho prompt
+    const templatesText = templates
+      .map((tpl, index) => `${index + 1}. Tên: "${tpl.templateName}"\n   Mô tả: ${tpl.description}\n   Ngày tạo: ${tpl.createAt}\n   Hình ảnh: ${tpl.images?.length || 0} ảnh`)
+      .join("\n\n");
+
     const prompt = `
+      Đây là danh sách templates có sẵn từ hệ thống:
+      ${templatesText}
+
       Tôi muốn bạn đóng vai trò là một trợ lý AI để tư vấn template website. 
       - Đây là lịch sử cuộc trò chuyện: ${historyText}
       - Dựa trên lịch sử và câu hỏi mới: "${input}", hãy tiếp tục tư vấn hoặc đặt câu hỏi để làm rõ nếu cần.
-      - Đề xuất template phù hợp nhất (nếu có) với tên, mô tả, và danh mục.
+      - Đề xuất CHỈ 1 template phù hợp nhất từ danh sách trên, với tên đầy đủ, mô tả ngắn gọn, lý do chọn (dựa trên mô tả và nhu cầu user).
+      - FORMAT ĐỀ XUẤT CHÍNH XÁC: "Đề xuất template: [Tên đầy đủ] với ID [templateId số]."
+      - Sau đề xuất, gợi ý xem chi tiết (ví dụ: "Bạn có thể xem chi tiết template này.").
       - Trả lời bằng tiếng Việt, ngắn gọn và thân thiện.
       - Nếu không có template phù hợp, hãy gợi ý liên hệ với đội ngũ Weplant để tùy chỉnh.
     `;
@@ -81,7 +121,7 @@ export default function TemplatesPage() {
     return generatedText;
   };
 
-  // Hàm xử lý chat submit
+  // Hàm xử lý chat submit - Updated để parse và render link
   const handleChatSubmit = async () => {
     if (!chatInput.trim()) {
       setChatMessages([
@@ -98,8 +138,10 @@ export default function TemplatesPage() {
     setChatMessages(updatedMessages);
 
     try {
-      const aiResponse = await callGeminiAI(chatInput, updatedMessages);
-      setChatMessages((prev) => [...prev, { sender: "ai", text: aiResponse }]);
+      const aiResponse = await callGeminiAI(chatInput, updatedMessages, templates);
+      // Parse để tạo JSX với link nếu có đề xuất
+      const parsedResponse = parseAIResponse(aiResponse);
+      setChatMessages((prev) => [...prev, { sender: "ai", content: parsedResponse }]);
     } catch (err) {
       setChatMessages((prev) => [
         ...prev,
@@ -185,7 +227,11 @@ export default function TemplatesPage() {
                       msg.sender === "user" ? "bg-blue-100" : "bg-gray-100"
                     }`}
                   >
-                    {msg.text}
+                    {msg.content || msg.text ? (
+                      msg.content || msg.text
+                    ) : (
+                      <span>{msg.text}</span>
+                    )}
                   </span>
                 </div>
               ))}

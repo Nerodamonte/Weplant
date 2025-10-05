@@ -13,6 +13,7 @@ import ViewTemplates from "./pages/viewTemplates.jsx";
 import PricingPage from "./pages/pricingPage.jsx";
 import TemplateDetailPage from "./pages/templateDetail.jsx";
 import Template2Page from "./pages/templateDetail1.jsx";
+import Template3Page from "./pages/templateDetail2.jsx";
 import About from "./pages/About.jsx";
 import Contact from "./pages/Contact.jsx";
 import CreateProject from "./pages/createProject.jsx";
@@ -33,6 +34,7 @@ function App() {
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/templates/1" element={<TemplateDetailPage />} />
         <Route path="/templates/2" element={<Template2Page />} />
+        <Route path="/templates/3" element={<Template3Page />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/create-project" element={<CreateProject />} />
