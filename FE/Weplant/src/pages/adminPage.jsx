@@ -1,26 +1,36 @@
 import { useState, useEffect } from "react";
-import { Bell } from "lucide-react";
+import { Bell, Plus, Edit, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "../App.css";
 
 export default function AdminPage() {
   const [users, setUsers] = useState([]);
   const [projects, setProjects] = useState([]);
+  const [templates, setTemplates] = useState([]); // State cho templates
   const [search, setSearch] = useState("");
   const [accountType, setAccountType] = useState("Tất cả");
   const [sort, setSort] = useState("Tên A-Z");
   const [currentPage, setCurrentPage] = useState(1);
+  const [templatePage, setTemplatePage] = useState(1); // Pagination riêng cho templates
   const itemsPerPage = 5;
+  const [activeTab, setActiveTab] = useState("Khách hàng");
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [templateId, setTemplateId] = useState("");
+  const [files, setFiles] = useState([]);
+  const [uploadMessage, setUploadMessage] = useState("");
+  const [templateModalOpen, setTemplateModalOpen] = useState(false); // Modal cho create/edit template
+  const [modalType, setModalType] = useState("create"); // 'create' or 'edit'
+  const [formData, setFormData] = useState({ templateName: "", description: "" }); // Form data cho template
+  const [templateMessage, setTemplateMessage] = useState(""); // Message cho template
   const navigate = useNavigate();
 
-  const API = "https://weplant-r8hj.onrender.com/api";
+  const API = "http://45.252.248.204:8080/api";
 
   const authFetch = (url, options = {}) => {
     const token = localStorage.getItem("authToken") || "";
     return fetch(url, {
       ...options,
       headers: {
-        "Content-Type": "application/json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...(options.headers || {}),
       },
@@ -55,6 +65,23 @@ export default function AdminPage() {
     fetchData();
   }, []);
 
+  // Fetch templates khi tab Templates active
+  useEffect(() => {
+    if (activeTab === "Templates") {
+      const fetchTemplates = async () => {
+        try {
+          const res = await authFetch(`${API}/templates/getAll`);
+          if (!res.ok) throw new Error("Không thể lấy danh sách templates!");
+          const data = await res.json();
+          setTemplates(data.data || []);
+        } catch (e) {
+          console.error("Fetch templates error:", e);
+        }
+      };
+      fetchTemplates();
+    }
+  }, [activeTab]);
+
   // Ghép user với số dự án
   const customers = users.map((u) => {
     const projectCount = projects.filter(
@@ -81,7 +108,7 @@ export default function AdminPage() {
     };
   });
 
-  // Lọc + sắp xếp
+  // Lọc + sắp xếp customers
   const filteredCustomers = customers
     .filter(
       (cust) =>
@@ -97,12 +124,137 @@ export default function AdminPage() {
         : b.name.localeCompare(a.name)
     );
 
-  // Phân trang
+  // Phân trang customers
   const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
   const paginatedCustomers = filteredCustomers.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+
+  // Lọc + sắp xếp templates
+  const filteredTemplates = templates
+    .filter((tpl) =>
+      tpl.templateName.toLowerCase().includes(search.toLowerCase()) ||
+      tpl.description.toLowerCase().includes(search.toLowerCase())
+    )
+    .sort((a, b) =>
+      sort === "Tên A-Z"
+        ? a.templateName.localeCompare(b.templateName)
+        : b.templateName.localeCompare(a.templateName)
+    );
+
+  // Phân trang templates
+  const totalTemplatePages = Math.ceil(filteredTemplates.length / itemsPerPage);
+  const paginatedTemplates = filteredTemplates.slice(
+    (templatePage - 1) * itemsPerPage,
+    templatePage * itemsPerPage
+  );
+
+  // Handle file change
+  const handleFileChange = (e) => {
+    setFiles(Array.from(e.target.files));
+  };
+
+  // Handle upload submit
+  const handleUploadSubmit = async (e) => {
+    e.preventDefault();
+    if (!templateId || files.length === 0) {
+      setUploadMessage("Vui lòng nhập ID template và chọn file!");
+      return;
+    }
+
+    const formData = new FormData();
+    files.forEach((file) => formData.append("files", file));
+
+    try {
+      const res = await fetch(`${API}/images/upload/${templateId}`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+        },
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setUploadMessage("Tải lên thành công!");
+        setTemplateId("");
+        setFiles([]);
+        // Refresh templates để update images count
+        const resTemplates = await authFetch(`${API}/templates/getAll`);
+        const dataTemplates = await resTemplates.json();
+        setTemplates(dataTemplates.data || []);
+      } else {
+        setUploadMessage(data.message || "Tải lên thất bại!");
+      }
+    } catch (err) {
+      setUploadMessage("Lỗi kết nối server!");
+    }
+  };
+
+  // Handle create/update template
+  const handleTemplateSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      let res;
+      if (modalType === "create") {
+        res = await authFetch(`${API}/templates/create`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        });
+      } else {
+        res = await authFetch(`${API}/templates/update/${formData.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ templateName: formData.templateName, description: formData.description }),
+        });
+      }
+      const data = await res.json();
+      if (res.ok) {
+        setTemplateMessage(modalType === "create" ? "Tạo template thành công!" : "Cập nhật thành công!");
+        setTemplateModalOpen(false);
+        setFormData({ templateName: "", description: "" });
+        // Refresh templates
+        const resTemplates = await authFetch(`${API}/templates/getAll`);
+        const dataTemplates = await resTemplates.json();
+        setTemplates(dataTemplates.data || []);
+      } else {
+        setTemplateMessage(data.message || "Thao tác thất bại!");
+      }
+    } catch (err) {
+      setTemplateMessage("Lỗi kết nối server!");
+    }
+  };
+
+  // Handle edit template
+  const handleEditTemplate = (template) => {
+    setFormData({
+      id: template.templateId,
+      templateName: template.templateName,
+      description: template.description,
+    });
+    setModalType("edit");
+    setTemplateModalOpen(true);
+  };
+
+  // Handle delete template
+  const handleDeleteTemplate = async (id) => {
+    if (!window.confirm("Bạn có chắc muốn xóa template này?")) return;
+    try {
+      const res = await authFetch(`${API}/templates/delete/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        // Refresh templates
+        const resTemplates = await authFetch(`${API}/templates/getAll`);
+        const dataTemplates = await resTemplates.json();
+        setTemplates(dataTemplates.data || []);
+      } else {
+        alert("Xóa thất bại!");
+      }
+    } catch (err) {
+      alert("Lỗi kết nối server!");
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -113,17 +265,58 @@ export default function AdminPage() {
           <nav className="flex gap-6 text-sm font-medium">
             <a
               href="#"
-              className="text-blue-600 border-b-2 border-blue-600 pb-1"
+              onClick={(e) => {
+                e.preventDefault();
+                setActiveTab("Dashboard");
+              }}
+              className={`pb-1 ${
+                activeTab === "Dashboard"
+                  ? "text-blue-600 border-b-2 border-blue-600"
+                  : "text-gray-600 hover:text-blue-600"
+              }`}
             >
               Dashboard
             </a>
-            <a href="#" className="text-gray-600 hover:text-blue-600">
+            <a
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                setActiveTab("Khách hàng");
+              }}
+              className={`pb-1 ${
+                activeTab === "Khách hàng"
+                  ? "text-blue-600 border-b-2 border-blue-600"
+                  : "text-gray-600 hover:text-blue-600"
+              }`}
+            >
               Khách hàng
             </a>
-            <a href="#" className="text-gray-600 hover:text-blue-600">
+            <a
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                setActiveTab("Dự án");
+              }}
+              className={`pb-1 ${
+                activeTab === "Dự án"
+                  ? "text-blue-600 border-b-2 border-blue-600"
+                  : "text-gray-600 hover:text-blue-600"
+              }`}
+            >
               Dự án
             </a>
-            <a href="#" className="text-gray-600 hover:text-blue-600">
+            <a
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                setActiveTab("Templates");
+              }}
+              className={`pb-1 ${
+                activeTab === "Templates"
+                  ? "text-blue-600 border-b-2 border-blue-600"
+                  : "text-gray-600 hover:text-blue-600"
+              }`}
+            >
               Templates
             </a>
           </nav>
@@ -140,145 +333,433 @@ export default function AdminPage() {
 
       {/* Main */}
       <main className="flex-1 max-w-7xl mx-auto px-6 py-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Danh Sách Khách Hàng
-        </h2>
-        <p className="text-sm text-gray-500 mb-6">
-          Xem và tìm kiếm thông tin khách hàng đã đăng ký trên Weplant.
-        </p>
+        {activeTab === "Khách hàng" && (
+          <>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Danh Sách Khách Hàng
+            </h2>
+            <p className="text-sm text-gray-500 mb-6">
+              Xem và tìm kiếm thông tin khách hàng đã đăng ký trên Weplant.
+            </p>
 
-        {/* Filters */}
-        <div className="flex gap-4 mb-6">
-          <div className="flex-1">
-            <input
-              type="text"
-              placeholder="Nhập tên hoặc email"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-          <select
-            value={accountType}
-            onChange={(e) => setAccountType(e.target.value)}
-            className="px-4 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option>Tất cả</option>
-            <option>Người dùng</option>
-            <option>Quản trị</option>
-          </select>
-          <select
-            value={sort}
-            onChange={(e) => setSort(e.target.value)}
-            className="px-4 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option>Tên A-Z</option>
-            <option>Tên Z-A</option>
-          </select>
-        </div>
+            {/* Filters */}
+            <div className="flex gap-4 mb-6">
+              <div className="flex-1">
+                <input
+                  type="text"
+                  placeholder="Nhập tên hoặc email"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <select
+                value={accountType}
+                onChange={(e) => setAccountType(e.target.value)}
+                className="px-4 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option>Tất cả</option>
+                <option>Người dùng</option>
+                <option>Quản trị</option>
+              </select>
+              <select
+                value={sort}
+                onChange={(e) => setSort(e.target.value)}
+                className="px-4 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option>Tên A-Z</option>
+                <option>Tên Z-A</option>
+              </select>
+            </div>
 
-        {/* Table */}
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-          <table className="w-full text-sm text-left">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 font-medium text-gray-700">
-                  Khách hàng
-                </th>
-                <th className="px-6 py-3 font-medium text-gray-700">
-                  Loại tài khoản
-                </th>
-                <th className="px-6 py-3 font-medium text-gray-700">
-                  Ngày đăng ký
-                </th>
-                <th className="px-6 py-3 font-medium text-gray-700">
-                  Số dự án
-                </th>
-                <th className="px-6 py-3 font-medium text-gray-700">
-                  Hành động
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {paginatedCustomers.map((cust) => (
-                <tr
-                  key={cust.id}
-                  className="border-b border-gray-100 hover:bg-gray-50"
-                >
-                  <td className="px-6 py-4 flex items-center gap-3">
-                    <img
-                      src={cust.avatar}
-                      alt={cust.name}
-                      className="w-10 h-10 rounded-full"
-                    />
-                    <div>
-                      <p className="font-medium text-gray-900">{cust.name}</p>
-                      <p className="text-gray-500 text-sm">{cust.email}</p>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${cust.typeColor}`}
+            {/* Table */}
+            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 font-medium text-gray-700">
+                      Khách hàng
+                    </th>
+                    <th className="px-6 py-3 font-medium text-gray-700">
+                      Loại tài khoản
+                    </th>
+                    <th className="px-6 py-3 font-medium text-gray-700">
+                      Ngày đăng ký
+                    </th>
+                    <th className="px-6 py-3 font-medium text-gray-700">
+                      Số dự án
+                    </th>
+                    <th className="px-6 py-3 font-medium text-gray-700">
+                      Hành động
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginatedCustomers.map((cust) => (
+                    <tr
+                      key={cust.id}
+                      className="border-b border-gray-100 hover:bg-gray-50"
                     >
-                      {cust.type}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-gray-600">
-                    {cust.registerDate}
-                  </td>
-                  <td className="px-6 py-4 text-gray-600">
-                    {cust.projects} dự án
-                  </td>
-                  <td className="px-6 py-4">
-                    <a
-                      href="#"
-                      className="text-blue-600 hover:underline text-sm"
+                      <td className="px-6 py-4 flex items-center gap-3">
+                        <img
+                          src={cust.avatar}
+                          alt={cust.name}
+                          className="w-10 h-10 rounded-full"
+                        />
+                        <div>
+                          <p className="font-medium text-gray-900">{cust.name}</p>
+                          <p className="text-gray-500 text-sm">{cust.email}</p>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${cust.typeColor}`}
+                        >
+                          {cust.type}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-gray-600">
+                        {cust.registerDate}
+                      </td>
+                      <td className="px-6 py-4 text-gray-600">
+                        {cust.projects} dự án
+                      </td>
+                      <td className="px-6 py-4">
+                        <a
+                          href="#"
+                          className="text-blue-600 hover:underline text-sm"
+                        >
+                          Xem chi tiết
+                        </a>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {/* Pagination */}
+              <div className="flex justify-between items-center w-full">
+                <div className="text-sm font-medium text-gray-700">
+                  Hiển thị {paginatedCustomers.length} trong tổng số{" "}
+                  {filteredCustomers.length} khách hàng
+                </div>
+                <div className="flex items-center gap-1">
+                  <button
+                    className="px-3 py-1 text-sm text-blue-600 border border-gray-300 rounded hover:bg-blue-100 disabled:bg-gray-200 disabled:text-gray-500 disabled:border-gray-300 disabled:cursor-not-allowed"
+                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                  >
+                    Trước
+                  </button>
+                  {[...Array(totalPages)].map((_, i) => (
+                    <button
+                      key={i + 1}
+                      className={`px-3 py-1 text-sm ${
+                        currentPage === i + 1
+                          ? "bg-blue-600 text-white"
+                          : "text-gray-700 hover:bg-gray-100"
+                      } rounded`}
+                      onClick={() => setCurrentPage(i + 1)}
                     >
-                      Xem chi tiết
-                    </a>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {/* Pagination */}
-          <div className="flex justify-between items-center w-full">
-            <div className="text-sm font-medium text-gray-700">
-              Hiển thị {paginatedCustomers.length} trong tổng số{" "}
-              {filteredCustomers.length} khách hàng
+                      {i + 1}
+                    </button>
+                  ))}
+                  <button
+                    className="px-3 py-1 text-sm text-blue-600 border border-gray-300 rounded hover:bg-blue-100 disabled:bg-gray-200 disabled:text-gray-500 disabled:border-gray-300 disabled:cursor-not-allowed"
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                    }
+                  >
+                    Sau
+                  </button>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-1">
+          </>
+        )}
+
+        {activeTab === "Templates" && (
+          <>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Quản Lý Templates</h2>
               <button
-                className="px-3 py-1 text-sm text-blue-600 border border-gray-300 rounded hover:bg-blue-100 disabled:bg-gray-200 disabled:text-gray-500 disabled:border-gray-300 disabled:cursor-not-allowed"
-                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                onClick={() => {
+                  setModalType("create");
+                  setFormData({ templateName: "", description: "" });
+                  setTemplateModalOpen(true);
+                }}
+                className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 text-sm font-medium"
               >
-                Trước
-              </button>
-              {[...Array(totalPages)].map((_, i) => (
-                <button
-                  key={i + 1}
-                  className={`px-3 py-1 text-sm ${
-                    currentPage === i + 1
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-700 hover:bg-gray-100"
-                  } rounded`}
-                  onClick={() => setCurrentPage(i + 1)}
-                >
-                  {i + 1}
-                </button>
-              ))}
-              <button
-                className="px-3 py-1 text-sm text-blue-600 border border-gray-300 rounded hover:bg-blue-100 disabled:bg-gray-200 disabled:text-gray-500 disabled:border-gray-300 disabled:cursor-not-allowed"
-                onClick={() =>
-                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                }
-              >
-                Sau
+                <Plus size={16} />
+                Thêm Template
               </button>
             </div>
+
+            {/* Filters cho templates */}
+            <div className="flex gap-4 mb-6">
+              <div className="flex-1">
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm tên hoặc mô tả template"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <select
+                value={sort}
+                onChange={(e) => setSort(e.target.value)}
+                className="px-4 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option>Tên A-Z</option>
+                <option>Tên Z-A</option>
+              </select>
+            </div>
+
+            {/* Table templates */}
+            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 font-medium text-gray-700">ID</th>
+                    <th className="px-6 py-3 font-medium text-gray-700">Tên Template</th>
+                    <th className="px-6 py-3 font-medium text-gray-700">Mô Tả</th>
+                    <th className="px-6 py-3 font-medium text-gray-700">Ngày Tạo</th>
+                    <th className="px-6 py-3 font-medium text-gray-700">Số Ảnh</th>
+                    <th className="px-6 py-3 font-medium text-gray-700">Hành Động</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginatedTemplates.map((tpl) => (
+                    <tr key={tpl.templateId} className="border-b border-gray-100 hover:bg-gray-50">
+                      <td className="px-6 py-4 text-gray-900">{tpl.templateId}</td>
+                      <td className="px-6 py-4 font-medium text-gray-900">{tpl.templateName}</td>
+                      <td className="px-6 py-4 text-gray-600 max-w-xs truncate">{tpl.description}</td>
+                      <td className="px-6 py-4 text-gray-600">
+                        {tpl.createAt ? new Date(tpl.createAt).toLocaleDateString("vi-VN") : "-"}
+                      </td>
+                      <td className="px-6 py-4 text-gray-600">{tpl.images?.length || 0}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleEditTemplate(tpl)}
+                            className="text-blue-600 hover:text-blue-800 p-1"
+                            title="Sửa"
+                          >
+                            <Edit size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteTemplate(tpl.templateId)}
+                            className="text-red-600 hover:text-red-800 p-1"
+                            title="Xóa"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                          <button
+                            onClick={() => {
+                              setTemplateId(tpl.templateId.toString());
+                              setUploadModalOpen(true);
+                            }}
+                            className="text-green-600 hover:text-green-800 p-1"
+                            title="Tải ảnh"
+                          >
+                            📷
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {/* Pagination cho templates */}
+              <div className="flex justify-between items-center w-full">
+                <div className="text-sm font-medium text-gray-700">
+                  Hiển thị {paginatedTemplates.length} trong tổng số {filteredTemplates.length} templates
+                </div>
+                <div className="flex items-center gap-1">
+                  <button
+                    className="px-3 py-1 text-sm text-blue-600 border border-gray-300 rounded hover:bg-blue-100 disabled:bg-gray-200 disabled:text-gray-500 disabled:border-gray-300 disabled:cursor-not-allowed"
+                    onClick={() => setTemplatePage((prev) => Math.max(prev - 1, 1))}
+                    disabled={templatePage === 1}
+                  >
+                    Trước
+                  </button>
+                  {[...Array(totalTemplatePages)].map((_, i) => (
+                    <button
+                      key={i + 1}
+                      className={`px-3 py-1 text-sm ${
+                        templatePage === i + 1
+                          ? "bg-blue-600 text-white"
+                          : "text-gray-700 hover:bg-gray-100"
+                      } rounded`}
+                      onClick={() => setTemplatePage(i + 1)}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+                  <button
+                    className="px-3 py-1 text-sm text-blue-600 border border-gray-300 rounded hover:bg-blue-100 disabled:bg-gray-200 disabled:text-gray-500 disabled:border-gray-300 disabled:cursor-not-allowed"
+                    onClick={() => setTemplatePage((prev) => Math.min(prev + 1, totalTemplatePages))}
+                    disabled={templatePage === totalTemplatePages}
+                  >
+                    Sau
+                  </button>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Các tab khác: Dashboard, Dự án - Placeholder */}
+        {activeTab === "Dashboard" && (
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Dashboard</h2>
+            <p className="text-gray-600">Tổng quan hệ thống (stats, charts) sẽ được thêm sau.</p>
           </div>
-        </div>
+        )}
+        {activeTab === "Dự án" && (
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Dự Án</h2>
+            <p className="text-gray-600">Quản lý dự án sẽ được thêm sau.</p>
+          </div>
+        )}
       </main>
+
+      {/* Modal Create/Edit Template */}
+      {templateModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-bold mb-4">
+              {modalType === "create" ? "Tạo Template Mới" : "Sửa Template"}
+            </h3>
+            <form onSubmit={handleTemplateSubmit}>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Tên Template
+                </label>
+                <input
+                  type="text"
+                  value={formData.templateName}
+                  onChange={(e) => setFormData({ ...formData, templateName: e.target.value })}
+                  placeholder="Nhập tên template"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Mô Tả
+                </label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Nhập mô tả template"
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+              {templateMessage && (
+                <p
+                  className={`text-sm mb-4 ${
+                    templateMessage.includes("thành công") ? "text-green-600" : "text-red-600"
+                  }`}
+                >
+                  {templateMessage}
+                </p>
+              )}
+              <div className="flex gap-2">
+                <button
+                  type="submit"
+                  className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700"
+                >
+                  {modalType === "create" ? "Tạo" : "Cập Nhật"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTemplateModalOpen(false);
+                    setFormData({ templateName: "", description: "" });
+                    setTemplateMessage("");
+                  }}
+                  className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400"
+                >
+                  Hủy
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Upload Ảnh */}
+      {uploadModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-bold mb-4">Tải Lên Ảnh Cho Template</h3>
+            <form onSubmit={handleUploadSubmit}>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  ID Template
+                </label>
+                <input
+                  type="text"
+                  value={templateId}
+                  onChange={(e) => setTemplateId(e.target.value)}
+                  placeholder="Nhập ID template (ví dụ: 1)"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Chọn file ảnh (nhiều file)
+                </label>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
+                  required
+                />
+                {files.length > 0 && (
+                  <p className="text-sm text-gray-600 mt-1">
+                    Đã chọn {files.length} file
+                  </p>
+                )}
+              </div>
+              {uploadMessage && (
+                <p
+                  className={`text-sm mb-4 ${
+                    uploadMessage.includes("thành công") ? "text-green-600" : "text-red-600"
+                  }`}
+                >
+                  {uploadMessage}
+                </p>
+              )}
+              <div className="flex gap-2">
+                <button
+                  type="submit"
+                  className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700"
+                >
+                  Tải Lên
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUploadModalOpen(false);
+                    setTemplateId("");
+                    setFiles([]);
+                    setUploadMessage("");
+                  }}
+                  className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400"
+                >
+                  Hủy
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

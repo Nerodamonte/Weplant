@@ -3,7 +3,7 @@ import { Mail, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "../App.css";
 
-const API = "https://weplant-r8hj.onrender.com/api";
+const API = "http://45.252.248.204:8080/api";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -21,39 +21,26 @@ export default function LoginPage() {
     try {
       const response = await fetch(`${API}/auth/login`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
 
-      if (!response.ok) {
-        throw new Error("Email hoặc mật khẩu không đúng!");
-      }
+      if (!response.ok) throw new Error("Email hoặc mật khẩu không đúng!");
 
       const result = await response.json();
-
       const token = result?.data?.token;
       const userEmail = result?.data?.email;
-      const userRole = result?.data?.role; // 👈 lấy role từ login response
+      const userRole = result?.data?.role;
 
       if (token && userRole) {
-        // Lưu token & thông tin
         localStorage.setItem("authToken", token);
         localStorage.setItem("isAuthenticated", "true");
         localStorage.setItem("userEmail", userEmail || email);
         localStorage.setItem("userRole", userRole);
 
-        if (remember) {
-          localStorage.setItem("rememberMe", "true");
-        }
+        if (remember) localStorage.setItem("rememberMe", "true");
 
-        // Điều hướng theo role
-        if (userRole === "ADMIN") {
-          navigate("/admin");
-        } else {
-          navigate("/authen");
-        }
+        navigate(userRole === "ADMIN" ? "/admin" : "/authen");
       } else {
         setError("Không nhận được token hoặc role từ server!");
       }
@@ -64,7 +51,6 @@ export default function LoginPage() {
     }
   };
 
-  // Xử lý đăng nhập Google (giả lập)
   const handleGoogleLogin = () => {
     setIsLoading(true);
     setTimeout(() => {
@@ -78,7 +64,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-blue-700">
       <div className="max-w-5xl w-full bg-white rounded-xl shadow-lg grid grid-cols-1 md:grid-cols-2 overflow-hidden">
-        {/* Left Section */}
+        {/* LEFT */}
         <div className="flex flex-col items-center justify-center p-10 bg-white">
           <div className="flex flex-col items-center">
             <div className="bg-blue-500 text-white p-3 rounded-xl mb-4">
@@ -96,7 +82,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Right Section */}
+        {/* RIGHT */}
         <div className="flex items-center justify-center p-10 bg-white">
           <form
             onSubmit={handleSubmit}
@@ -109,7 +95,6 @@ export default function LoginPage() {
               Đăng nhập để bắt đầu tạo website hoặc khám phá các template của bạn
             </p>
 
-            {/* Thông báo lỗi */}
             {error && (
               <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
                 {error}
@@ -166,9 +151,15 @@ export default function LoginPage() {
                 />
                 Ghi nhớ tôi
               </label>
-              <a href="#" className="text-blue-500 hover:underline">
+
+              {/* 👇 Nút chuyển hướng sang trang forgot-password */}
+              <button
+                type="button"
+                onClick={() => navigate("/forget-password")}
+                className="text-blue-500 hover:underline"
+              >
                 Quên mật khẩu?
-              </a>
+              </button>
             </div>
 
             {/* Login Button */}

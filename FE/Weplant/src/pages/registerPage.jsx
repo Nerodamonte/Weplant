@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const API = "https://weplant-r8hj.onrender.com/api";
+const API = "http://45.252.248.204:8080/api";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -14,7 +14,7 @@ export default function RegisterPage() {
     agree: false,
   });
 
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState({ text: "", type: "" });  // {text, type: 'success' | 'error'}
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -28,7 +28,12 @@ export default function RegisterPage() {
     e.preventDefault();
 
     if (formData.password !== formData.confirmPassword) {
-      setMessage("Mật khẩu xác nhận không khớp!");
+      setMessage({ text: "Mật khẩu xác nhận không khớp!", type: "error" });
+      return;
+    }
+
+    if (!formData.agree) {
+      setMessage({ text: "Vui lòng đồng ý với điều khoản!", type: "error" });
       return;
     }
 
@@ -54,16 +59,19 @@ export default function RegisterPage() {
       }
 
       if (response.ok) {
-        setMessage("Đăng ký thành công! Đang chuyển hướng...");
+        setMessage({ 
+          text: "Đăng ký thành công! Vui lòng kiểm tra email để kích hoạt tài khoản.", 
+          type: "success" 
+        });
         setTimeout(() => {
-          navigate("/login"); // hoặc /authen tùy route bạn cấu hình
-        }, 2000);
+          navigate("/login");
+        }, 3000);  // Tăng thời gian để user đọc
       } else {
-        setMessage(data?.message || "Đăng ký thất bại!");
+        setMessage({ text: data?.message || "Đăng ký thất bại!", type: "error" });
       }
     } catch (error) {
       console.error("Lỗi:", error);
-      setMessage("Không kết nối được đến server!");
+      setMessage({ text: "Không kết nối được đến server!", type: "error" });
     }
   };
 
@@ -221,8 +229,16 @@ export default function RegisterPage() {
           </button>
 
           {/* Message */}
-          {message && (
-            <p className="text-center text-sm text-red-500 mt-2">{message}</p>
+          {message.text && (
+            <p 
+              className={`text-center text-sm mt-2 ${
+                message.type === "success" 
+                  ? "text-green-600" 
+                  : "text-red-500"
+              }`}
+            >
+              {message.text}
+            </p>
           )}
 
           <p className="text-center text-sm text-gray-600">
