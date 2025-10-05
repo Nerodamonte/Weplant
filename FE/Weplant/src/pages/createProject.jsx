@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-
+import logo from "../assets/logo.png";
 export default function StartProjectForm({ onSubmit }) {
   const [active, setActive] = useState("Trang Chủ");
 
@@ -156,7 +156,7 @@ export default function StartProjectForm({ onSubmit }) {
         packageId: Number(form.packageId),
         projectName: form.projectName.trim(),
         description: form.description.trim(),
-        status: "NEW",
+        status: "CREATED",
       };
       if (form.templateId) body.templateId = Number(form.templateId);
 
@@ -205,7 +205,7 @@ export default function StartProjectForm({ onSubmit }) {
       <nav className="w-full bg-white shadow-sm">
         <div className="max-w-7xl mx-auto flex justify-between items-center px-10 py-4">
           <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="weplant logo" className="w-6 h-6" />
+            <img src={logo} alt="weplant logo" className="h-16 w-auto object-contain" />
             <span className="text-blue-600 font-bold text-xl">weplant</span>
           </div>
           <div className="flex gap-8">
@@ -521,8 +521,8 @@ export default function StartProjectForm({ onSubmit }) {
           <div>
             <h4 className="font-semibold text-white mb-4">Liên Hệ</h4>
             <ul className="space-y-2">
-              <li>📧 support@weplant.com</li>
-              <li>📞 0123 456 789</li>
+              <li>📧 contact.weplant@gmail.com</li>
+              <li>📞 094 7722102</li>
               <li>📍 123 Đường Nguyễn Huệ, Quận 1, TP. HCM</li>
             </ul>
           </div>

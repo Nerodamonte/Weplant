@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import "../App.css";
 import { Link, useParams, useNavigate } from "react-router-dom";
-
+import logo from "../assets/logo.png";
 export default function ProfileEditPage() {
   const { id } = useParams(); // /profile/:id (userId)
   const navigate = useNavigate();
@@ -17,8 +17,8 @@ export default function ProfileEditPage() {
   });
   const [saving, setSaving] = useState(false);
 
-  const API_USERS = "https://weplant-r8hj.onrender.com/api/users";
-  const API_PROJECTS = "https://weplant-r8hj.onrender.com/api/projects";
+  const API_USERS = "http://45.252.248.204:8080/api/users";
+  const API_PROJECTS = "http://45.252.248.204:8080/api/projects";
 
   // ---- Helper: fetch kèm Bearer token (key: authToken) ----
   const authFetch = async (url, options = {}) => {
@@ -131,6 +131,13 @@ export default function ProfileEditPage() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailErr, setDetailErr] = useState("");
 
+  // Modal chỉnh sửa mô tả
+  const [openEdit, setOpenEdit] = useState(false);
+  const [editFor, setEditFor] = useState(null); // {id, name, description}
+  const [editDesc, setEditDesc] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
+  const [editErr, setEditErr] = useState("");
+
   useEffect(() => {
     if (activeTab !== "projects") return;
 
@@ -155,7 +162,6 @@ export default function ProfileEditPage() {
         setLoadingProjects(true);
         setProjErr("");
 
-        // fetch theo userId
         const res = await authFetch(
           `${API_PROJECTS}/getProjectByUserId/${userIdForProjects}`
         );
@@ -170,13 +176,11 @@ export default function ProfileEditPage() {
         const apiRes = await res.json().catch(() => ({}));
         const list = apiRes?.data || [];
 
-        // CHUẨN HOÁ theo ProjectDetailResponse LIST (nếu BE trả giống detail)
         const normalized = list.map((p) => ({
           id: p.projectId ?? p.project_id,
           name: p.projectName ?? p.project_name,
           description: p.description ?? "",
           status: p.status ?? "",
-          // map thêm các tên hiển thị để có thể xài trên card nếu muốn
           userName: p.userName ?? p.user_name ?? "",
           packageName: p.packageName ?? p.package_name ?? "",
           templateName: p.templateName ?? p.template_name ?? "",
@@ -247,6 +251,63 @@ export default function ProfileEditPage() {
     }
   };
 
+  // ====== mở modal chỉnh sửa mô tả ======
+  const handleOpenEdit = (p) => {
+    setEditFor({ id: p.id, name: p.name, description: p.description || "" });
+    setEditDesc(p.description || "");
+    setEditErr("");
+    setOpenEdit(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editFor) return;
+    try {
+      setEditSaving(true);
+      setEditErr("");
+
+      // chỉ gửi mô tả
+      const body = { description: editDesc };
+
+      const res = await authFetch(`${API_PROJECTS}/update/${editFor.id}`, {
+        method: "PUT",
+        body: JSON.stringify(body),
+      });
+
+      if (res.status === 401 || res.status === 403) {
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("isAuthenticated");
+        navigate("/login");
+        return;
+      }
+      if (!res.ok) {
+        const txt = await res.text().catch(() => "");
+        throw new Error(txt || `HTTP ${res.status}`);
+      }
+
+      // cập nhật local danh sách
+      setProjects((arr) =>
+        arr.map((x) =>
+          String(x.id) === String(editFor.id)
+            ? { ...x, description: editDesc }
+            : x
+        )
+      );
+      // nếu đang mở detail, sync luôn
+      setDetail((d) =>
+        d && String(d.id) === String(editFor.id)
+          ? { ...d, description: editDesc }
+          : d
+      );
+
+      setOpenEdit(false);
+      setEditFor(null);
+    } catch (e) {
+      setEditErr(e.message || "Không thể cập nhật mô tả.");
+    } finally {
+      setEditSaving(false);
+    }
+  };
+
   const closeModal = () => {
     setOpenDetail(false);
     setDetail(null);
@@ -260,7 +321,7 @@ export default function ProfileEditPage() {
       <nav className="w-full bg-white shadow-sm fixed top-0 left-0 z-50">
         <div className="max-w-7xl mx-auto flex justify-between items-center px-10 py-4">
           <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="weplant logo" className="w-6 h-6" />
+            <img src={logo} alt="weplant logo" className="h-16 w-auto object-contain" />
             <span className="text-blue-600 font-bold text-xl">weplant</span>
           </div>
 
@@ -292,6 +353,17 @@ export default function ProfileEditPage() {
         <h2 className="text-2xl font-bold mb-4 text-gray-800 text-center">
           Hồ Sơ & Dự Án
         </h2>
+        {/* Back to /authen */}
+        <div className="flex justify-center mb-4">
+          <button
+            onClick={() => navigate("/authen")}
+            className="fixed top-24 left-6 z-50 flex items-center justify-center w-12 h-12 rounded-full bg-white shadow-md border hover:bg-gray-50 transition"
+            title="Quay về trang chính"
+          >
+            <span className="text-lg">←</span>
+            
+          </button>
+        </div>
 
         {/* Tabs */}
         <div className="flex gap-2 justify-center mb-6">
@@ -414,6 +486,7 @@ export default function ProfileEditPage() {
                     key={p.id}
                     p={p}
                     onView={() => handleViewDetail(p.id)}
+                    onEdit={() => handleOpenEdit(p)}
                   />
                 ))}
               </div>
@@ -522,13 +595,87 @@ export default function ProfileEditPage() {
           </div>
         </div>
       )}
+
+      {/* ======= MODAL: Edit description ======= */}
+      {openEdit && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setOpenEdit(false)}
+            aria-hidden="true"
+          />
+          <div className="relative z-10 w-[92%] max-w-xl bg-white rounded-2xl shadow-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Chỉnh Sửa Yêu Cầu</h3>
+              <button
+                className="px-3 py-1 rounded-lg bg-gray-100 hover:bg-gray-200"
+                onClick={() => setOpenEdit(false)}
+              >
+                Đóng
+              </button>
+            </div>
+
+            {editFor && (
+              <div className="space-y-4">
+                <div className="border rounded-lg p-3 bg-gray-50">
+                  <div className="text-xs font-medium text-gray-500 mb-1">
+                    Tên dự án
+                  </div>
+                  <div className="text-sm text-gray-800 break-words">
+                    {editFor.name || "—"}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Mô tả mới <span className="text-rose-500">*</span>
+                  </label>
+                  <textarea
+                    rows={6}
+                    value={editDesc}
+                    onChange={(e) => setEditDesc(e.target.value)}
+                    placeholder="Nhập yêu cầu/chỉnh sửa bạn mong muốn…"
+                    className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-4 focus:ring-indigo-100"
+                  />
+                  <p className="mt-2 text-xs text-gray-500">
+                    <b>Chú thích:</b> Nếu bạn không hài lòng với bản mô tả hiện
+                    tại, hãy ghi rõ các thay đổi mong muốn (tông màu, bố cục,
+                    tính năng…).
+                  </p>
+                </div>
+
+                {editErr && (
+                  <div className="text-sm text-rose-600">{editErr}</div>
+                )}
+
+                <div className="flex justify-end gap-2">
+                  <button
+                    className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200"
+                    onClick={() => setOpenEdit(false)}
+                    disabled={editSaving}
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    className="px-4 py-2 rounded-lg text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-60"
+                    onClick={handleSaveEdit}
+                    disabled={editSaving || !editDesc.trim()}
+                  >
+                    {editSaving ? "Đang lưu..." : "Lưu thay đổi"}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 /* ---------- helpers & small components ---------- */
 
-function ProjectCard({ p, onView }) {
+function ProjectCard({ p, onView, onEdit }) {
   const badge = statusBadge(p.status);
   return (
     <div className="border rounded-xl p-4 shadow-sm">
@@ -556,7 +703,10 @@ function ProjectCard({ p, onView }) {
         >
           Xem Chi Tiết
         </button>
-        <button className="flex-1 bg-gray-100 text-gray-800 text-sm rounded-lg px-3 py-2 hover:bg-gray-200">
+        <button
+          onClick={onEdit}
+          className="flex-1 bg-gray-100 text-gray-800 text-sm rounded-lg px-3 py-2 hover:bg-gray-200"
+        >
           Chỉnh Sửa Yêu Cầu
         </button>
       </div>
@@ -576,15 +726,36 @@ function BoxRow({ label, value, className = "" }) {
 function statusBadge(s) {
   const val = (s || "").toUpperCase();
   switch (val) {
-    case "PENDING":
-      return { text: "Đang chờ duyệt", cls: "bg-yellow-100 text-yellow-700" };
+    case "CREATED":
+      return { text: "Mới tạo", cls: "bg-gray-100 text-gray-700" };
+
     case "DESIGNING":
-    case "IN_PROGRESS":
       return { text: "Đang thiết kế", cls: "bg-blue-100 text-blue-700" };
+
+    case "RE_DESIGNING":
+      return { text: "Thiết kế lại", cls: "bg-yellow-100 text-yellow-700" };
+
+    case "COMPLETE_DESIGNING":
+      return {
+        text: "Hoàn tất thiết kế",
+        cls: "bg-indigo-100 text-indigo-700",
+      };
+
+    case "CODING":
+      return { text: "Đang lập trình", cls: "bg-purple-100 text-purple-700" };
+
+    case "COMPLETED_CODING":
+      return {
+        text: "Hoàn tất lập trình",
+        cls: "bg-violet-100 text-violet-700",
+      };
+
+    case "DEPLOYING":
+      return { text: "Đang triển khai", cls: "bg-orange-100 text-orange-700" };
+
     case "COMPLETED":
       return { text: "Hoàn thành", cls: "bg-green-100 text-green-700" };
-    case "CANCELLED":
-      return { text: "Đã hủy", cls: "bg-gray-200 text-gray-700" };
+
     default:
       return { text: val || "Không rõ", cls: "bg-slate-100 text-slate-700" };
   }

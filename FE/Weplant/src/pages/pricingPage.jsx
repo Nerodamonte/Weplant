@@ -196,11 +196,11 @@ export default function PricingPage() {
             <ul className="space-y-3 text-gray-400">
               <li className="flex items-center gap-2">
                 <span>📧</span>
-                <span>support@weplant.com</span>
+                <span>contact.weplant@gmail.com</span>
               </li>
               <li className="flex items-center gap-2">
                 <span>📞</span>
-                <span>0123 456 789</span>
+                <span>094 7722102</span>
               </li>
             </ul>
           </div>

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-
+import logo from "../assets/logo.png";
 export default function Template3Page() {
   const [activeTab, setActiveTab] = useState("description");
 
@@ -10,7 +10,7 @@ export default function Template3Page() {
       <header className="bg-white shadow-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
           <Link to="/" className="flex items-center gap-2">
-            <img src="/logo.png" alt="Weplant Logo" className="h-8 w-8" />
+            <img src={logo} alt="Weplant Logo" className="h-16 w-auto object-contain" />
             <span className="font-bold text-blue-600 text-xl">Weplant</span>
           </Link>
           <nav className="hidden md:flex gap-6 text-gray-700">

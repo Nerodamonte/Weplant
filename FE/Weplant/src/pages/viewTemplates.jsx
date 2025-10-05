@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import "../App.css";
 import { Link } from "react-router-dom";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-
+import logo from "../assets/logo.png";
 export default function TemplatesPage() {
   const [active, setActive] = useState("Template");
   const [templates, setTemplates] = useState([]);
@@ -64,10 +64,10 @@ export default function TemplatesPage() {
       return (
         <span>
           {updatedText}
-          <Link 
-            to={`/templates/${id}`} 
+          <Link
+            to={`/templates/${id}`}
             className="text-blue-500 underline font-medium hover:text-blue-700"
-            target="_blank" 
+            target="_blank"
             rel="noopener noreferrer"
           >
             Nhấn vào đây để xem chi tiết {name}
@@ -94,7 +94,14 @@ export default function TemplatesPage() {
 
     // Format templates thành text dễ đọc cho prompt
     const templatesText = templates
-      .map((tpl, index) => `${index + 1}. Tên: "${tpl.templateName}"\n   Mô tả: ${tpl.description}\n   Ngày tạo: ${tpl.createAt}\n   Hình ảnh: ${tpl.images?.length || 0} ảnh`)
+      .map(
+        (tpl, index) =>
+          `${index + 1}. Tên: "${tpl.templateName}"\n   Mô tả: ${
+            tpl.description
+          }\n   Ngày tạo: ${tpl.createAt}\n   Hình ảnh: ${
+            tpl.images?.length || 0
+          } ảnh`
+      )
       .join("\n\n");
 
     const prompt = `
@@ -138,10 +145,17 @@ export default function TemplatesPage() {
     setChatMessages(updatedMessages);
 
     try {
-      const aiResponse = await callGeminiAI(chatInput, updatedMessages, templates);
+      const aiResponse = await callGeminiAI(
+        chatInput,
+        updatedMessages,
+        templates
+      );
       // Parse để tạo JSX với link nếu có đề xuất
       const parsedResponse = parseAIResponse(aiResponse);
-      setChatMessages((prev) => [...prev, { sender: "ai", content: parsedResponse }]);
+      setChatMessages((prev) => [
+        ...prev,
+        { sender: "ai", content: parsedResponse },
+      ]);
     } catch (err) {
       setChatMessages((prev) => [
         ...prev,
@@ -158,7 +172,11 @@ export default function TemplatesPage() {
       <nav className="w-full bg-white shadow-sm fixed top-0 left-0 z-50">
         <div className="max-w-7xl mx-auto flex justify-between items-center px-10 py-4">
           <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="weplant logo" className="w-6 h-6" />
+            <img
+              src={logo}
+              alt="weplant logo"
+              className="h-16 w-auto object-contain"
+            />
             <span className="text-blue-600 font-bold text-xl">weplant</span>
           </div>
           <div className="flex gap-8">
@@ -388,8 +406,8 @@ export default function TemplatesPage() {
           <div>
             <h4 className="font-semibold text-white mb-4">Liên Hệ</h4>
             <ul className="space-y-2">
-              <li>📧 support@weplant.com</li>
-              <li>📞 0324 456 789</li>
+              <li>📧 contact.weplant@gmail.com</li>
+              <li>📞 094 77221029</li>
               <li>📍 123 Nguyễn Huệ, Q1, TP. HCM</li>
             </ul>
           </div>

@@ -245,8 +245,8 @@ export default function Template2Page() {
           <div className="flex flex-col items-center md:items-start">
             <h4 className={`font-semibold mb-4 ${theme === "dark" ? "text-green-100" : "text-green-900"}`}>Hỗ trợ</h4>
             <ul className="space-y-3">
-              <li className={`${theme === "dark" ? "text-green-200" : "text-green-600"}`}>support@weplant.com</li>
-              <li className={`${theme === "dark" ? "text-green-200" : "text-green-600"}`}>+84 123 456 789</li>
+              <li className={`${theme === "dark" ? "text-green-200" : "text-green-600"}`}>contact.weplant@gmail.com</li>
+              <li className={`${theme === "dark" ? "text-green-200" : "text-green-600"}`}>+94 772 2102</li>
             </ul>
           </div>
         </div>

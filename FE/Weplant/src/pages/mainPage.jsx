@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Home, Layers, LifeBuoy } from "lucide-react";
 import "../App.css";
+import logo from "../assets/logo.png";
 export default function App() {
   const [active, setActive] = useState("Trang Chủ");
 
@@ -16,11 +17,11 @@ export default function App() {
           {/* Logo */}
           <div className="flex items-center gap-2">
             <img
-              src="/logo.png" // đổi thành đường dẫn logo của bạn
+              src={logo} // đổi thành đường dẫn logo của bạn
               alt="weplant logo"
-              className="w-6 h-6"
+              className="h-16 w-auto object-contain"
             />
-            <span className="text-blue-600 font-bold text-xl">weplant</span>
+            <span className="text-blue-600 font-bold text-xl">Weplant</span>
           </div>
 
           {/* Menu */}
@@ -293,8 +294,8 @@ export default function App() {
           <div>
             <h4 className="font-semibold text-white mb-4">Liên Hệ</h4>
             <ul className="space-y-2">
-              <li>📧 support@weplant.com</li>
-              <li>📞 0123 456 789</li>
+              <li>📧 contact.weplant@gmail.com</li>
+              <li>📞 094 7722102</li>
               <li>📍 123 Đường Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh</li>
             </ul>
           </div>
