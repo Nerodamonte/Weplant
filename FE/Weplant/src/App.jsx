@@ -21,6 +21,7 @@ import CreateProject from "./pages/createProject.jsx";
 import ForgotPasswordPage from "./pages/forgetPassword.jsx";
 import ResetPasswordPage from "./pages/resetPasswordPage.jsx";
 import ActivateAccountPage from "./pages/activeAccount.jsx";
+import TemplateDetail4 from "./pages/templateDetail4.jsx";
 function App() {
   return (
     <BrowserRouter>
@@ -37,6 +38,7 @@ function App() {
         <Route path="/templates/2" element={<Template2Page />} />
         <Route path="/templates/3" element={<Template3Page />} />
         <Route path="/templates/4" element={<TemplateDetail3 />} />
+        <Route path="/templates/5" element={<TemplateDetail4 />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/create-project" element={<CreateProject />} />
