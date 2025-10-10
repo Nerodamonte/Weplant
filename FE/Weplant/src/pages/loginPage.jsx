@@ -51,16 +51,6 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogleLogin = () => {
-    setIsLoading(true);
-    setTimeout(() => {
-      localStorage.setItem("authToken", "google-jwt-token-456");
-      localStorage.setItem("isAuthenticated", "true");
-      localStorage.setItem("userEmail", "user@gmail.com");
-      navigate("/authen");
-    }, 1500);
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-blue-700">
       <div className="max-w-5xl w-full bg-white rounded-xl shadow-lg grid grid-cols-1 md:grid-cols-2 overflow-hidden">
@@ -176,28 +166,6 @@ export default function LoginPage() {
               ) : (
                 <span>Đăng Nhập</span>
               )}
-            </button>
-
-            {/* Or Divider */}
-            <div className="my-6 flex items-center">
-              <div className="flex-1 border-t"></div>
-              <span className="px-2 text-gray-400 text-sm">hoặc</span>
-              <div className="flex-1 border-t"></div>
-            </div>
-
-            {/* Google Login */}
-            <button
-              type="button"
-              onClick={handleGoogleLogin}
-              disabled={isLoading}
-              className="w-full border py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-100 transition disabled:bg-gray-50 disabled:cursor-not-allowed"
-            >
-              <img
-                src="https://www.svgrepo.com/show/475656/google-color.svg"
-                alt="Google"
-                className="w-5 h-5"
-              />
-              {isLoading ? "Đang xử lý..." : "Đăng nhập với Google"}
             </button>
 
             {/* Register */}

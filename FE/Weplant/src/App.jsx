@@ -14,12 +14,14 @@ import PricingPage from "./pages/pricingPage.jsx";
 import TemplateDetailPage from "./pages/templateDetail.jsx";
 import Template2Page from "./pages/templateDetail1.jsx";
 import Template3Page from "./pages/templateDetail2.jsx";
+import TemplateDetail3 from "./pages/templateDetail3.jsx";
 import About from "./pages/About.jsx";
 import Contact from "./pages/Contact.jsx";
 import CreateProject from "./pages/createProject.jsx";
 import ForgotPasswordPage from "./pages/forgetPassword.jsx";
 import ResetPasswordPage from "./pages/resetPasswordPage.jsx";
 import ActivateAccountPage from "./pages/activeAccount.jsx";
+import TemplateDetail4 from "./pages/templateDetail4.jsx";
 function App() {
   return (
     <BrowserRouter>
@@ -35,6 +37,8 @@ function App() {
         <Route path="/templates/1" element={<TemplateDetailPage />} />
         <Route path="/templates/2" element={<Template2Page />} />
         <Route path="/templates/3" element={<Template3Page />} />
+        <Route path="/templates/4" element={<TemplateDetail3 />} />
+        <Route path="/templates/5" element={<TemplateDetail4 />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/create-project" element={<CreateProject />} />

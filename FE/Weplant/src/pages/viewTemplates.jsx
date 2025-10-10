@@ -3,6 +3,7 @@ import "../App.css";
 import { Link } from "react-router-dom";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import logo from "../assets/logo.png";
+import { useNavigate } from "react-router-dom";
 export default function TemplatesPage() {
   const [active, setActive] = useState("Template");
   const [templates, setTemplates] = useState([]);
@@ -11,6 +12,7 @@ export default function TemplatesPage() {
   const [chatInput, setChatInput] = useState("");
   const [chatMessages, setChatMessages] = useState([]);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const navigate = useNavigate();
 
   const API = "http://45.252.248.204:8080/api";
   const GEMINI_API_KEY = "AIzaSyBip7sULJoCXfitgcPyWK20j5RIEYI6LtM";
@@ -370,7 +372,10 @@ export default function TemplatesPage() {
           Hãy để đội ngũ thiết kế chuyên nghiệp của Weplant hoặc AI của chúng
           tôi tạo ra mẫu website riêng cho bạn.
         </p>
-        <button className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700">
+        <button
+          onClick={() => navigate("/create-project")}
+          className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 cursor-pointer transition"
+        >
           Tạo dự án tùy chỉnh
         </button>
       </section>
