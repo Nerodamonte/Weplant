@@ -22,6 +22,17 @@ import ForgotPasswordPage from "./pages/forgetPassword.jsx";
 import ResetPasswordPage from "./pages/resetPasswordPage.jsx";
 import ActivateAccountPage from "./pages/activeAccount.jsx";
 import TemplateDetail4 from "./pages/templateDetail4.jsx";
+import TemplateN1 from "./templates/templateN1.jsx";
+import TemplateN2 from "./templates/templateN2.jsx";
+import TemplateN3 from "./templates/templateN3.jsx";
+import TemplateN4 from "./templates/templateN4.jsx";
+import TemplateN5 from "./templates/templateN5.jsx";
+import TemplateN6 from "./templates/templateN6.jsx";
+import TemplateN7 from "./templates/templateN7.jsx";
+import TemplateN8 from "./templates/templateN8.jsx";
+import TemplateN9 from "./templates/templateN9.jsx";
+import TemplateN10 from "./templates/templateN10.jsx";
+
 function App() {
   return (
     <BrowserRouter>
@@ -45,6 +56,16 @@ function App() {
         <Route path="/forget-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/activate-account" element={<ActivateAccountPage />} />
+        <Route path="/templates/n1" element={<TemplateN1 />} />
+        <Route path="/templates/n2" element={<TemplateN2 />} />
+        <Route path="/templates/n3" element={<TemplateN3 />} />
+        <Route path="/templates/n4" element={<TemplateN4 />} />
+        <Route path="/templates/n5" element={<TemplateN5 />} />
+        <Route path="/templates/n6" element={<TemplateN6 />} />
+        <Route path="/templates/n7" element={<TemplateN7 />} />
+        <Route path="/templates/n8" element={<TemplateN8 />} />
+        <Route path="/templates/n9" element={<TemplateN9 />} />
+        <Route path="/templates/n10" element={<TemplateN10 />} />
       </Routes>
     </BrowserRouter>
   );
