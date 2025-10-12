@@ -23,9 +23,17 @@ export default function AdminPage() {
   const [templateModalOpen, setTemplateModalOpen] = useState(false); // Modal cho create/edit template
   const [projectModalOpen, setProjectModalOpen] = useState(false); // Modal cho create/edit project
   const [modalType, setModalType] = useState("create"); // 'create' or 'edit'
-  const [formData, setFormData] = useState({ templateName: "", description: "" }); // Form data cho template
-  const [projectFormData, setProjectFormData] = useState({ 
-    userId: "", templateId: "", packageId: "", projectName: "", description: "", status: "PENDING" 
+  const [formData, setFormData] = useState({
+    templateName: "",
+    description: "",
+  }); // Form data cho template
+  const [projectFormData, setProjectFormData] = useState({
+    userId: "",
+    templateId: "",
+    packageId: "",
+    projectName: "",
+    description: "",
+    status: "PENDING",
   }); // Form data cho project
   const [templateMessage, setTemplateMessage] = useState(""); // Message cho template
   const [projectMessage, setProjectMessage] = useState(""); // Message cho project
@@ -122,9 +130,7 @@ export default function AdminPage() {
         cust.name.toLowerCase().includes(search.toLowerCase()) ||
         cust.email.toLowerCase().includes(search.toLowerCase())
     )
-    .filter(
-      (cust) => accountType === "Tất cả" || cust.type === accountType
-    )
+    .filter((cust) => accountType === "Tất cả" || cust.type === accountType)
     .sort((a, b) =>
       sort === "Tên A-Z"
         ? a.name.localeCompare(b.name)
@@ -140,9 +146,10 @@ export default function AdminPage() {
 
   // Lọc + sắp xếp templates
   const filteredTemplates = templates
-    .filter((tpl) =>
-      tpl.templateName.toLowerCase().includes(search.toLowerCase()) ||
-      tpl.description.toLowerCase().includes(search.toLowerCase())
+    .filter(
+      (tpl) =>
+        tpl.templateName.toLowerCase().includes(search.toLowerCase()) ||
+        tpl.description.toLowerCase().includes(search.toLowerCase())
     )
     .sort((a, b) =>
       sort === "Tên A-Z"
@@ -159,10 +166,11 @@ export default function AdminPage() {
 
   // Lọc + sắp xếp projects
   const filteredProjects = projects
-    .filter((proj) =>
-      proj.projectName.toLowerCase().includes(search.toLowerCase()) ||
-      proj.userName.toLowerCase().includes(search.toLowerCase()) ||
-      proj.description.toLowerCase().includes(search.toLowerCase())
+    .filter(
+      (proj) =>
+        proj.projectName.toLowerCase().includes(search.toLowerCase()) ||
+        proj.userName.toLowerCase().includes(search.toLowerCase()) ||
+        proj.description.toLowerCase().includes(search.toLowerCase())
     )
     .sort((a, b) =>
       sort === "Tên A-Z"
@@ -190,7 +198,9 @@ export default function AdminPage() {
       return;
     }
 
-    const endpoint = projectIdForUpload ? `/attachments/upload/${projectIdForUpload}` : `/images/upload/${templateId}`;
+    const endpoint = projectIdForUpload
+      ? `/attachments/upload/${projectIdForUpload}`
+      : `/images/upload/${templateId}`;
     const formData = new FormData();
     files.forEach((file) => formData.append("files", file));
 
@@ -232,24 +242,39 @@ export default function AdminPage() {
     e.preventDefault();
     try {
       let res;
+
+      // Gom dữ liệu cần gửi
+      const bodyData = {
+        templateName: formData.templateName,
+        description: formData.description,
+        price: formData.price ?? 0, // thêm giá vào, mặc định 0 nếu trống
+      };
+
       if (modalType === "create") {
         res = await authFetch(`${API}/templates/create`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
+          body: JSON.stringify(bodyData),
         });
       } else {
         res = await authFetch(`${API}/templates/update/${formData.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ templateName: formData.templateName, description: formData.description }),
+          body: JSON.stringify(bodyData),
         });
       }
+
       const data = await res.json();
+
       if (res.ok) {
-        setTemplateMessage(modalType === "create" ? "Tạo template thành công!" : "Cập nhật thành công!");
+        setTemplateMessage(
+          modalType === "create"
+            ? "Tạo template thành công!"
+            : "Cập nhật thành công!"
+        );
         setTemplateModalOpen(false);
-        setFormData({ templateName: "", description: "" });
+        setFormData({ templateName: "", description: "", price: 0 });
+
         // Refresh templates
         const resTemplates = await authFetch(`${API}/templates/getAll`);
         const dataTemplates = await resTemplates.json();
@@ -283,16 +308,25 @@ export default function AdminPage() {
             packageId: projectFormData.packageId,
             projectName: projectFormData.projectName,
             description: projectFormData.description,
-            status: projectFormData.status
+            status: projectFormData.status,
           }),
         });
       }
       const data = await res.json();
       if (res.ok) {
-        setProjectMessage(modalType === "create" ? "Tạo project thành công!" : "Cập nhật thành công!");
+        setProjectMessage(
+          modalType === "create"
+            ? "Tạo project thành công!"
+            : "Cập nhật thành công!"
+        );
         setProjectModalOpen(false);
-        setProjectFormData({ 
-          userId: "", templateId: "", packageId: "", projectName: "", description: "", status: "PENDING" 
+        setProjectFormData({
+          userId: "",
+          templateId: "",
+          packageId: "",
+          projectName: "",
+          description: "",
+          status: "PENDING",
         });
         // Refresh projects
         const resProjects = await authFetch(`${API}/projects/getAll`);
@@ -321,7 +355,9 @@ export default function AdminPage() {
   const handleDeleteTemplate = async (id) => {
     if (!window.confirm("Bạn có chắc muốn xóa template này?")) return;
     try {
-      const res = await authFetch(`${API}/templates/delete/${id}`, { method: "DELETE" });
+      const res = await authFetch(`${API}/templates/delete/${id}`, {
+        method: "DELETE",
+      });
       if (res.ok) {
         // Refresh templates
         const resTemplates = await authFetch(`${API}/templates/getAll`);
@@ -354,7 +390,9 @@ export default function AdminPage() {
   const handleDeleteProject = async (id) => {
     if (!window.confirm("Bạn có chắc muốn xóa project này?")) return;
     try {
-      const res = await authFetch(`${API}/projects/delete/${id}`, { method: "DELETE" });
+      const res = await authFetch(`${API}/projects/delete/${id}`, {
+        method: "DELETE",
+      });
       if (res.ok) {
         // Refresh projects
         const resProjects = await authFetch(`${API}/projects/getAll`);
@@ -372,7 +410,10 @@ export default function AdminPage() {
   const handleUpdateStatus = async (id, newStatus) => {
     if (!window.confirm(`Cập nhật trạng thái thành ${newStatus}?`)) return;
     try {
-      const res = await authFetch(`${API}/projects/updateStatus/${id}?status=${newStatus}`, { method: "PUT" });
+      const res = await authFetch(
+        `${API}/projects/updateStatus/${id}?status=${newStatus}`,
+        { method: "PUT" }
+      );
       if (res.ok) {
         // Refresh projects
         const resProjects = await authFetch(`${API}/projects/getAll`);
@@ -537,7 +578,9 @@ export default function AdminPage() {
                           className="w-10 h-10 rounded-full"
                         />
                         <div>
-                          <p className="font-medium text-gray-900">{cust.name}</p>
+                          <p className="font-medium text-gray-900">
+                            {cust.name}
+                          </p>
                           <p className="text-gray-500 text-sm">{cust.email}</p>
                         </div>
                       </td>
@@ -575,7 +618,9 @@ export default function AdminPage() {
                 <div className="flex items-center gap-1">
                   <button
                     className="px-3 py-1 text-sm text-blue-600 border border-gray-300 rounded hover:bg-blue-100 disabled:bg-gray-200 disabled:text-gray-500 disabled:border-gray-300 disabled:cursor-not-allowed"
-                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
                   >
                     Trước
                   </button>
@@ -609,7 +654,9 @@ export default function AdminPage() {
         {activeTab === "Templates" && (
           <>
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Quản Lý Templates</h2>
+              <h2 className="text-2xl font-bold text-gray-900">
+                Quản Lý Templates
+              </h2>
               <button
                 onClick={() => {
                   setModalType("create");
@@ -650,23 +697,46 @@ export default function AdminPage() {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 font-medium text-gray-700">ID</th>
-                    <th className="px-6 py-3 font-medium text-gray-700">Tên Template</th>
-                    <th className="px-6 py-3 font-medium text-gray-700">Mô Tả</th>
-                    <th className="px-6 py-3 font-medium text-gray-700">Ngày Tạo</th>
-                    <th className="px-6 py-3 font-medium text-gray-700">Số Ảnh</th>
-                    <th className="px-6 py-3 font-medium text-gray-700">Hành Động</th>
+                    <th className="px-6 py-3 font-medium text-gray-700">
+                      Tên Template
+                    </th>
+                    <th className="px-6 py-3 font-medium text-gray-700">
+                      Mô Tả
+                    </th>
+                    <th className="px-6 py-3 font-medium text-gray-700">
+                      Ngày Tạo
+                    </th>
+                    <th className="px-6 py-3 font-medium text-gray-700">
+                      Số Ảnh
+                    </th>
+                    <th className="px-6 py-3 font-medium text-gray-700">
+                      Hành Động
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {paginatedTemplates.map((tpl) => (
-                    <tr key={tpl.templateId} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="px-6 py-4 text-gray-900">{tpl.templateId}</td>
-                      <td className="px-6 py-4 font-medium text-gray-900">{tpl.templateName}</td>
-                      <td className="px-6 py-4 text-gray-600 max-w-xs truncate">{tpl.description}</td>
-                      <td className="px-6 py-4 text-gray-600">
-                        {tpl.createAt ? new Date(tpl.createAt).toLocaleDateString("vi-VN") : "-"}
+                    <tr
+                      key={tpl.templateId}
+                      className="border-b border-gray-100 hover:bg-gray-50"
+                    >
+                      <td className="px-6 py-4 text-gray-900">
+                        {tpl.templateId}
                       </td>
-                      <td className="px-6 py-4 text-gray-600">{tpl.images?.length || 0}</td>
+                      <td className="px-6 py-4 font-medium text-gray-900">
+                        {tpl.templateName}
+                      </td>
+                      <td className="px-6 py-4 text-gray-600 max-w-xs truncate">
+                        {tpl.description}
+                      </td>
+                      <td className="px-6 py-4 text-gray-600">
+                        {tpl.createAt
+                          ? new Date(tpl.createAt).toLocaleDateString("vi-VN")
+                          : "-"}
+                      </td>
+                      <td className="px-6 py-4 text-gray-600">
+                        {tpl.images?.length || 0}
+                      </td>
                       <td className="px-6 py-4">
                         <div className="flex gap-2">
                           <button
@@ -702,12 +772,15 @@ export default function AdminPage() {
               {/* Pagination cho templates */}
               <div className="flex justify-between items-center w-full">
                 <div className="text-sm font-medium text-gray-700">
-                  Hiển thị {paginatedTemplates.length} trong tổng số {filteredTemplates.length} templates
+                  Hiển thị {paginatedTemplates.length} trong tổng số{" "}
+                  {filteredTemplates.length} templates
                 </div>
                 <div className="flex items-center gap-1">
                   <button
                     className="px-3 py-1 text-sm text-blue-600 border border-gray-300 rounded hover:bg-blue-100 disabled:bg-gray-200 disabled:text-gray-500 disabled:border-gray-300 disabled:cursor-not-allowed"
-                    onClick={() => setTemplatePage((prev) => Math.max(prev - 1, 1))}
+                    onClick={() =>
+                      setTemplatePage((prev) => Math.max(prev - 1, 1))
+                    }
                     disabled={templatePage === 1}
                   >
                     Trước
@@ -727,7 +800,11 @@ export default function AdminPage() {
                   ))}
                   <button
                     className="px-3 py-1 text-sm text-blue-600 border border-gray-300 rounded hover:bg-blue-100 disabled:bg-gray-200 disabled:text-gray-500 disabled:border-gray-300 disabled:cursor-not-allowed"
-                    onClick={() => setTemplatePage((prev) => Math.min(prev + 1, totalTemplatePages))}
+                    onClick={() =>
+                      setTemplatePage((prev) =>
+                        Math.min(prev + 1, totalTemplatePages)
+                      )
+                    }
                     disabled={templatePage === totalTemplatePages}
                   >
                     Sau
@@ -741,12 +818,19 @@ export default function AdminPage() {
         {activeTab === "Dự án" && (
           <>
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Quản Lý Dự Án</h2>
+              <h2 className="text-2xl font-bold text-gray-900">
+                Quản Lý Dự Án
+              </h2>
               <button
                 onClick={() => {
                   setModalType("create");
-                  setProjectFormData({ 
-                    userId: "", templateId: "", packageId: "", projectName: "", description: "", status: "PENDING" 
+                  setProjectFormData({
+                    userId: "",
+                    templateId: "",
+                    packageId: "",
+                    projectName: "",
+                    description: "",
+                    status: "PENDING",
                   });
                   setProjectModalOpen(true);
                 }}
@@ -784,34 +868,67 @@ export default function AdminPage() {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 font-medium text-gray-700">ID</th>
-                    <th className="px-6 py-3 font-medium text-gray-700">Tên Dự Án</th>
-                    <th className="px-6 py-3 font-medium text-gray-700">User</th>
-                    <th className="px-6 py-3 font-medium text-gray-700">Template</th>
-                    <th className="px-6 py-3 font-medium text-gray-700">Package</th>
-                    <th className="px-6 py-3 font-medium text-gray-700">Trạng Thái</th>
-                    <th className="px-6 py-3 font-medium text-gray-700">Ngày Tạo</th>
-                    <th className="px-6 py-3 font-medium text-gray-700">Hành Động</th>
+                    <th className="px-6 py-3 font-medium text-gray-700">
+                      Tên Dự Án
+                    </th>
+                    <th className="px-6 py-3 font-medium text-gray-700">
+                      User
+                    </th>
+                    <th className="px-6 py-3 font-medium text-gray-700">
+                      Template
+                    </th>
+                    <th className="px-6 py-3 font-medium text-gray-700">
+                      Package
+                    </th>
+                    <th className="px-6 py-3 font-medium text-gray-700">
+                      Trạng Thái
+                    </th>
+                    <th className="px-6 py-3 font-medium text-gray-700">
+                      Ngày Tạo
+                    </th>
+                    <th className="px-6 py-3 font-medium text-gray-700">
+                      Hành Động
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {paginatedProjects.map((proj) => (
-                    <tr key={proj.projectId} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="px-6 py-4 text-gray-900">{proj.projectId}</td>
-                      <td className="px-6 py-4 font-medium text-gray-900">{proj.projectName}</td>
-                      <td className="px-6 py-4 text-gray-600">{proj.userName}</td>
-                      <td className="px-6 py-4 text-gray-600">{proj.templateName}</td>
-                      <td className="px-6 py-4 text-gray-600">{proj.packageName}</td>
+                    <tr
+                      key={proj.projectId}
+                      className="border-b border-gray-100 hover:bg-gray-50"
+                    >
+                      <td className="px-6 py-4 text-gray-900">
+                        {proj.projectId}
+                      </td>
+                      <td className="px-6 py-4 font-medium text-gray-900">
+                        {proj.projectName}
+                      </td>
+                      <td className="px-6 py-4 text-gray-600">
+                        {proj.userName}
+                      </td>
+                      <td className="px-6 py-4 text-gray-600">
+                        {proj.templateName}
+                      </td>
+                      <td className="px-6 py-4 text-gray-600">
+                        {proj.packageName}
+                      </td>
                       <td className="px-6 py-4">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          proj.status === "PENDING" ? "bg-yellow-100 text-yellow-800" :
-                          proj.status === "COMPLETED_CODING" ? "bg-green-100 text-green-800" :
-                          "bg-gray-100 text-gray-800"
-                        }`}>
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            proj.status === "PENDING"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : proj.status === "COMPLETED_CODING"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
                           {proj.status}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-gray-600">
-                        {proj.createAt ? new Date(proj.createAt).toLocaleDateString("vi-VN") : "-"}
+                        {proj.createAt
+                          ? new Date(proj.createAt).toLocaleDateString("vi-VN")
+                          : "-"}
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex gap-2">
@@ -831,11 +948,15 @@ export default function AdminPage() {
                           </button>
                           <select
                             defaultValue={proj.status}
-                            onChange={(e) => handleUpdateStatus(proj.projectId, e.target.value)}
+                            onChange={(e) =>
+                              handleUpdateStatus(proj.projectId, e.target.value)
+                            }
                             className="text-xs border rounded p-1"
                           >
                             <option value="PENDING">PENDING</option>
-                            <option value="COMPLETED_CODING">COMPLETED_CODING</option>
+                            <option value="COMPLETED_CODING">
+                              COMPLETED_CODING
+                            </option>
                             {/* Add other statuses as needed */}
                           </select>
                           <button
@@ -857,12 +978,15 @@ export default function AdminPage() {
               {/* Pagination cho projects */}
               <div className="flex justify-between items-center w-full">
                 <div className="text-sm font-medium text-gray-700">
-                  Hiển thị {paginatedProjects.length} trong tổng số {filteredProjects.length} projects
+                  Hiển thị {paginatedProjects.length} trong tổng số{" "}
+                  {filteredProjects.length} projects
                 </div>
                 <div className="flex items-center gap-1">
                   <button
                     className="px-3 py-1 text-sm text-blue-600 border border-gray-300 rounded hover:bg-blue-100 disabled:bg-gray-200 disabled:text-gray-500 disabled:border-gray-300 disabled:cursor-not-allowed"
-                    onClick={() => setProjectPage((prev) => Math.max(prev - 1, 1))}
+                    onClick={() =>
+                      setProjectPage((prev) => Math.max(prev - 1, 1))
+                    }
                     disabled={projectPage === 1}
                   >
                     Trước
@@ -882,7 +1006,11 @@ export default function AdminPage() {
                   ))}
                   <button
                     className="px-3 py-1 text-sm text-blue-600 border border-gray-300 rounded hover:bg-blue-100 disabled:bg-gray-200 disabled:text-gray-500 disabled:border-gray-300 disabled:cursor-not-allowed"
-                    onClick={() => setProjectPage((prev) => Math.min(prev + 1, totalProjectPages))}
+                    onClick={() =>
+                      setProjectPage((prev) =>
+                        Math.min(prev + 1, totalProjectPages)
+                      )
+                    }
                     disabled={projectPage === totalProjectPages}
                   >
                     Sau
@@ -896,7 +1024,9 @@ export default function AdminPage() {
         {activeTab === "Dashboard" && (
           <div className="bg-white rounded-lg shadow-sm p-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Dashboard</h2>
-            <p className="text-gray-600">Tổng quan hệ thống (stats, charts) sẽ được thêm sau.</p>
+            <p className="text-gray-600">
+              Tổng quan hệ thống (stats, charts) sẽ được thêm sau.
+            </p>
           </div>
         )}
       </main>
@@ -910,54 +1040,89 @@ export default function AdminPage() {
             </h3>
             <form onSubmit={handleProjectSubmit}>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">User ID</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  User ID
+                </label>
                 <input
                   type="number"
                   value={projectFormData.userId}
-                  onChange={(e) => setProjectFormData({ ...projectFormData, userId: e.target.value })}
+                  onChange={(e) =>
+                    setProjectFormData({
+                      ...projectFormData,
+                      userId: e.target.value,
+                    })
+                  }
                   placeholder="Nhập User ID"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Template ID</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Template ID
+                </label>
                 <input
                   type="number"
                   value={projectFormData.templateId}
-                  onChange={(e) => setProjectFormData({ ...projectFormData, templateId: e.target.value })}
+                  onChange={(e) =>
+                    setProjectFormData({
+                      ...projectFormData,
+                      templateId: e.target.value,
+                    })
+                  }
                   placeholder="Nhập Template ID"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Package ID</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Package ID
+                </label>
                 <input
                   type="number"
                   value={projectFormData.packageId}
-                  onChange={(e) => setProjectFormData({ ...projectFormData, packageId: e.target.value })}
+                  onChange={(e) =>
+                    setProjectFormData({
+                      ...projectFormData,
+                      packageId: e.target.value,
+                    })
+                  }
                   placeholder="Nhập Package ID"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Tên Dự Án</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Tên Dự Án
+                </label>
                 <input
                   type="text"
                   value={projectFormData.projectName}
-                  onChange={(e) => setProjectFormData({ ...projectFormData, projectName: e.target.value })}
+                  onChange={(e) =>
+                    setProjectFormData({
+                      ...projectFormData,
+                      projectName: e.target.value,
+                    })
+                  }
                   placeholder="Nhập tên dự án"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Mô Tả</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Mô Tả
+                </label>
                 <textarea
                   value={projectFormData.description}
-                  onChange={(e) => setProjectFormData({ ...projectFormData, description: e.target.value })}
+                  onChange={(e) =>
+                    setProjectFormData({
+                      ...projectFormData,
+                      description: e.target.value,
+                    })
+                  }
                   placeholder="Nhập mô tả dự án"
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -965,10 +1130,17 @@ export default function AdminPage() {
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Trạng Thái</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Trạng Thái
+                </label>
                 <select
                   value={projectFormData.status}
-                  onChange={(e) => setProjectFormData({ ...projectFormData, status: e.target.value })}
+                  onChange={(e) =>
+                    setProjectFormData({
+                      ...projectFormData,
+                      status: e.target.value,
+                    })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="PENDING">PENDING</option>
@@ -979,7 +1151,9 @@ export default function AdminPage() {
               {projectMessage && (
                 <p
                   className={`text-sm mb-4 ${
-                    projectMessage.includes("thành công") ? "text-green-600" : "text-red-600"
+                    projectMessage.includes("thành công")
+                      ? "text-green-600"
+                      : "text-red-600"
                   }`}
                 >
                   {projectMessage}
@@ -996,8 +1170,13 @@ export default function AdminPage() {
                   type="button"
                   onClick={() => {
                     setProjectModalOpen(false);
-                    setProjectFormData({ 
-                      userId: "", templateId: "", packageId: "", projectName: "", description: "", status: "PENDING" 
+                    setProjectFormData({
+                      userId: "",
+                      templateId: "",
+                      packageId: "",
+                      projectName: "",
+                      description: "",
+                      status: "PENDING",
                     });
                     setProjectMessage("");
                   }}
@@ -1019,6 +1198,7 @@ export default function AdminPage() {
               {modalType === "create" ? "Tạo Template Mới" : "Sửa Template"}
             </h3>
             <form onSubmit={handleTemplateSubmit}>
+              {/* Tên Template */}
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Tên Template
@@ -1026,34 +1206,63 @@ export default function AdminPage() {
                 <input
                   type="text"
                   value={formData.templateName}
-                  onChange={(e) => setFormData({ ...formData, templateName: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, templateName: e.target.value })
+                  }
                   placeholder="Nhập tên template"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
               </div>
+
+              {/* Mô tả */}
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Mô Tả
                 </label>
                 <textarea
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
                   placeholder="Nhập mô tả template"
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
               </div>
+
+              {/* Giá Template */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Giá (₫)
+                </label>
+                <input
+                  type="number"
+                  value={formData.price || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, price: Number(e.target.value) })
+                  }
+                  placeholder="Nhập giá template (để 0 nếu miễn phí)"
+                  min="0"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              {/* Thông báo */}
               {templateMessage && (
                 <p
                   className={`text-sm mb-4 ${
-                    templateMessage.includes("thành công") ? "text-green-600" : "text-red-600"
+                    templateMessage.includes("thành công")
+                      ? "text-green-600"
+                      : "text-red-600"
                   }`}
                 >
                   {templateMessage}
                 </p>
               )}
+
+              {/* Nút hành động */}
               <div className="flex gap-2">
                 <button
                   type="submit"
@@ -1065,7 +1274,11 @@ export default function AdminPage() {
                   type="button"
                   onClick={() => {
                     setTemplateModalOpen(false);
-                    setFormData({ templateName: "", description: "" });
+                    setFormData({
+                      templateName: "",
+                      description: "",
+                      price: 0,
+                    });
                     setTemplateMessage("");
                   }}
                   className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400"
@@ -1083,7 +1296,9 @@ export default function AdminPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h3 className="text-lg font-bold mb-4">
-              {projectIdForUpload ? "Tải Lên Attachments Cho Dự Án" : "Tải Lên Ảnh Cho Template"}
+              {projectIdForUpload
+                ? "Tải Lên Attachments Cho Dự Án"
+                : "Tải Lên Ảnh Cho Template"}
             </h3>
             <form onSubmit={handleUploadSubmit}>
               <div className="mb-4">
@@ -1093,8 +1308,14 @@ export default function AdminPage() {
                 <input
                   type="text"
                   value={projectIdForUpload || templateId}
-                  onChange={(e) => projectIdForUpload ? setProjectIdForUpload(e.target.value) : setTemplateId(e.target.value)}
-                  placeholder={`Nhập ID ${projectIdForUpload ? "dự án" : "template"} (ví dụ: 1)`}
+                  onChange={(e) =>
+                    projectIdForUpload
+                      ? setProjectIdForUpload(e.target.value)
+                      : setTemplateId(e.target.value)
+                  }
+                  placeholder={`Nhập ID ${
+                    projectIdForUpload ? "dự án" : "template"
+                  } (ví dụ: 1)`}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
@@ -1120,7 +1341,9 @@ export default function AdminPage() {
               {uploadMessage && (
                 <p
                   className={`text-sm mb-4 ${
-                    uploadMessage.includes("thành công") ? "text-green-600" : "text-red-600"
+                    uploadMessage.includes("thành công")
+                      ? "text-green-600"
+                      : "text-red-600"
                   }`}
                 >
                   {uploadMessage}
