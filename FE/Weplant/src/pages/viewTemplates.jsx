@@ -51,31 +51,63 @@ export default function TemplatesPage() {
     fetchTemplates();
   }, []);
 
-  // Parse phản hồi AI để chèn link
+  // Parse phản hồi AI → chèn link có thể nhấn
   const parseAIResponse = (text) => {
+    // Nếu phản hồi có format "Đề xuất template..." + link
     const match = text.match(/Đề xuất template:\s*"([^"]+)"\s*với ID\s*(\d+)/i);
+    const linkMatch = text.match(/https?:\/\/[^\s]+/gi);
+
+    let content = text;
+
+    // Thay thế link trong text thành thẻ <a>
+    if (linkMatch) {
+      linkMatch.forEach((url) => {
+        content = content.replace(
+          url,
+          `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-500 underline hover:text-blue-700">${url}</a>`
+        );
+      });
+    }
+
+    // Nếu có template name và ID → chèn thêm phần "xem chi tiết"
     if (match) {
       const name = match[1];
       const id = match[2];
-      const updatedText = text.replace(
-        /Đề xuất template:\s*"[^"]+"\s*với ID\s*\d+\./i,
-        `Đề xuất template: "${name}". `
+      const reactLink = (
+        <Link
+          to={`/templates/${id}`}
+          className="text-blue-500 underline font-medium hover:text-blue-700"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Nhấn vào đây để xem chi tiết {name}
+        </Link>
       );
+
+      // Dùng dangerouslySetInnerHTML để render link HTML
       return (
-        <span>
-          {updatedText}
-          <Link
-            to={`/templates/${id}`}
-            className="text-blue-500 underline font-medium hover:text-blue-700"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Nhấn vào đây để xem chi tiết {name}
-          </Link>
-          .
+        <span
+          dangerouslySetInnerHTML={{
+            __html: content,
+          }}
+        >
+          {reactLink}
         </span>
       );
     }
+
+    // Nếu chỉ có link thôi (AI tự trả ra link)
+    if (linkMatch) {
+      return (
+        <span
+          dangerouslySetInnerHTML={{
+            __html: content,
+          }}
+        />
+      );
+    }
+
+    // Mặc định
     return <span>{text}</span>;
   };
 
@@ -91,7 +123,6 @@ export default function TemplatesPage() {
       )
       .join("\n");
 
-    // Format template rõ ràng có giá
     const templatesText = templates
       .map(
         (tpl, index) =>
@@ -118,7 +149,9 @@ export default function TemplatesPage() {
          + MỨC GIÁ phù hợp với túi tiền người dùng (nếu họ nhắc đến ngân sách, ví dụ “rẻ”, “miễn phí”, “dưới 1 triệu”, v.v.)
       - Nếu người dùng không nói rõ ngân sách, bạn chọn template có chất lượng tốt nhất phù hợp mô tả.
       - Format chính xác: "Đề xuất template: [Tên đầy đủ] với ID [templateId số]."
-      - Sau đề xuất, gợi ý xem chi tiết template đó.
+      -Đề xuất template: [Tên đầy đủ] với ID [templateId].  
+👉    -Xem chi tiết: http://localhost:5173/templates/[templateId]  
+      -Giải thích ngắn gọn vì sao template này phù hợp.
       - Viết ngắn gọn, thân thiện, tiếng Việt.
       - Nếu không có template phù hợp, gợi ý liên hệ đội ngũ Weplant để tạo mẫu riêng.
     `;
@@ -207,7 +240,8 @@ export default function TemplatesPage() {
           Khám Phá Các Template Website
         </h1>
         <p className="text-gray-600 max-w-2xl mx-auto">
-          Chat với AI để tìm template phù hợp nhất với nhu cầu và ngân sách của bạn!
+          Chat với AI để tìm template phù hợp nhất với nhu cầu và ngân sách của
+          bạn!
         </p>
         <button
           onClick={() => {
@@ -332,6 +366,63 @@ export default function TemplatesPage() {
             </div>
           ))}
       </section>
+
+      {/* ✅ Footer */}
+      <footer className="w-full bg-gray-900 text-gray-300 mt-20">
+        <div className="grid md:grid-cols-4 gap-8 px-10 lg:px-20 py-12 max-w-7xl mx-auto">
+          <div>
+            <h3 className="font-bold text-white mb-4">weplant</h3>
+            <p>
+              Chúng tôi giúp bạn biến ý tưởng thành hiện thực với các giải pháp
+              thiết kế website tùy chỉnh.
+            </p>
+            <div className="flex space-x-4 mt-4">
+              <a href="#">
+                <i className="fab fa-facebook" />
+              </a>
+              <a href="#">
+                <i className="fab fa-linkedin" />
+              </a>
+              <a href="#">
+                <i className="fab fa-twitter" />
+              </a>
+            </div>
+          </div>
+          <div>
+            <h4 className="font-semibold text-white mb-4">Dịch Vụ</h4>
+            <ul className="space-y-2">
+              <li>Thiết Kế Website</li>
+              <li>Template Có Sẵn</li>
+              <li>Tư Vấn UI/UX</li>
+              <li>Bảo Trì Website</li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-semibold text-white mb-4">Hỗ Trợ</h4>
+            <ul className="space-y-2">
+              <li>Trung Tâm Hỗ Trợ</li>
+              <li>Câu Hỏi Thường Gặp</li>
+              <li>Hướng Dẫn Sử Dụng</li>
+              <li>Liên Hệ</li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-semibold text-white mb-4">Liên Hệ</h4>
+            <ul className="space-y-2">
+              <li>📧 contact.weplant@gmail.com</li>
+              <li>📞 094 7722102</li>
+              <li>📍 123 Đường Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh</li>
+            </ul>
+          </div>
+        </div>
+        <div className="border-t border-gray-700 py-6 px-10 lg:px-20 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
+          <p>© 2025 Weplant. Tất cả quyền được bảo lưu.</p>
+          <div className="flex space-x-6 mt-4 md:mt-0">
+            <a href="#">Điều Khoản Sử Dụng</a>
+            <a href="#">Chính Sách Bảo Mật</a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

@@ -56,16 +56,16 @@ function App() {
         <Route path="/forget-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/activate-account" element={<ActivateAccountPage />} />
-        <Route path="/templates/n1" element={<TemplateN1 />} />
-        <Route path="/templates/n2" element={<TemplateN2 />} />
-        <Route path="/templates/n3" element={<TemplateN3 />} />
-        <Route path="/templates/n4" element={<TemplateN4 />} />
-        <Route path="/templates/n5" element={<TemplateN5 />} />
-        <Route path="/templates/n6" element={<TemplateN6 />} />
-        <Route path="/templates/n7" element={<TemplateN7 />} />
-        <Route path="/templates/n8" element={<TemplateN8 />} />
-        <Route path="/templates/n9" element={<TemplateN9 />} />
-        <Route path="/templates/n10" element={<TemplateN10 />} />
+        <Route path="/templates/6" element={<TemplateN1 />} />
+        <Route path="/templates/7" element={<TemplateN2 />} />
+        <Route path="/templates/8" element={<TemplateN3 />} />
+        <Route path="/templates/9" element={<TemplateN4 />} />
+        <Route path="/templates/10" element={<TemplateN5 />} />
+        <Route path="/templates/11" element={<TemplateN6 />} />
+        <Route path="/templates/12" element={<TemplateN7 />} />
+        <Route path="/templates/13" element={<TemplateN8 />} />
+        <Route path="/templates/14" element={<TemplateN9 />} />
+        <Route path="/templates/15" element={<TemplateN10 />} />
       </Routes>
     </BrowserRouter>
   );

@@ -704,6 +704,9 @@ export default function AdminPage() {
                       Mô Tả
                     </th>
                     <th className="px-6 py-3 font-medium text-gray-700">
+                      Giá (₫)
+                    </th>
+                    <th className="px-6 py-3 font-medium text-gray-700">
                       Ngày Tạo
                     </th>
                     <th className="px-6 py-3 font-medium text-gray-700">
@@ -729,6 +732,17 @@ export default function AdminPage() {
                       <td className="px-6 py-4 text-gray-600 max-w-xs truncate">
                         {tpl.description}
                       </td>
+
+                      {/* ✅ Cột Giá Template */}
+                      <td className="px-6 py-4 text-gray-700 font-semibold">
+                        {tpl.price && tpl.price > 0
+                          ? tpl.price.toLocaleString("vi-VN", {
+                              style: "currency",
+                              currency: "VND",
+                            })
+                          : "Miễn phí"}
+                      </td>
+
                       <td className="px-6 py-4 text-gray-600">
                         {tpl.createAt
                           ? new Date(tpl.createAt).toLocaleDateString("vi-VN")
