@@ -60,7 +60,7 @@ export default function AuthenticatedPage() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const API = "http://45.252.248.204:8080/api";
+  const API = "/api";
   const authFetch = (url, options = {}) => {
     const token = localStorage.getItem("authToken") || "";
     return fetch(url, {

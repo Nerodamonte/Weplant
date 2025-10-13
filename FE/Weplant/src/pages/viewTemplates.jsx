@@ -14,7 +14,7 @@ export default function TemplatesPage() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const navigate = useNavigate();
 
-  const API = "http://45.252.248.204:8080/api";
+  const API = "/api";
   const GEMINI_API_KEY = "AIzaSyBip7sULJoCXfitgcPyWK20j5RIEYI6LtM";
 
   // Khởi tạo Gemini client
