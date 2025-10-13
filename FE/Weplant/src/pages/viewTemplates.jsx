@@ -17,11 +17,9 @@ export default function TemplatesPage() {
   const API = "http://45.252.248.204:8080/api";
   const GEMINI_API_KEY = "AIzaSyBip7sULJoCXfitgcPyWK20j5RIEYI6LtM";
 
-  // Khởi tạo Gemini client
   const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
   const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-  // Hàm fetch kèm token
   const authFetch = (url, options = {}) => {
     const token = localStorage.getItem("authToken") || "";
     return fetch(`${API}${url}`, {
@@ -34,7 +32,6 @@ export default function TemplatesPage() {
     });
   };
 
-  // Fetch danh sách templates
   useEffect(() => {
     const fetchTemplates = async () => {
       try {
@@ -51,15 +48,20 @@ export default function TemplatesPage() {
     fetchTemplates();
   }, []);
 
-  // Parse phản hồi AI → chèn link có thể nhấn
+  // 👉 helper: mở trang chi tiết + lưu templateId
+  const openDetail = (tid) => {
+    if (!tid) return;
+    sessionStorage.setItem("lastTemplateId", String(tid));
+    navigate(`/templates/${tid}`, { state: { templateId: Number(tid) } });
+  };
+
+  // Parse phản hồi AI → chèn link có thể nhấn (đã sửa để lưu id)
   const parseAIResponse = (text) => {
-    // Nếu phản hồi có format "Đề xuất template..." + link
     const match = text.match(/Đề xuất template:\s*"([^"]+)"\s*với ID\s*(\d+)/i);
     const linkMatch = text.match(/https?:\/\/[^\s]+/gi);
 
     let content = text;
 
-    // Thay thế link trong text thành thẻ <a>
     if (linkMatch) {
       linkMatch.forEach((url) => {
         content = content.replace(
@@ -69,34 +71,28 @@ export default function TemplatesPage() {
       });
     }
 
-    // Nếu có template name và ID → chèn thêm phần "xem chi tiết"
     if (match) {
       const name = match[1];
       const id = match[2];
-      const reactLink = (
-        <Link
-          to={`/templates/${id}`}
-          className="text-blue-500 underline font-medium hover:text-blue-700"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Nhấn vào đây để xem chi tiết {name}
-        </Link>
-      );
 
-      // Dùng dangerouslySetInnerHTML để render link HTML
+      // Dùng Link React nhưng vẫn muốn lưu id trước khi điều hướng
       return (
-        <span
-          dangerouslySetInnerHTML={{
-            __html: content,
-          }}
-        >
-          {reactLink}
+        <span>
+          <span
+            dangerouslySetInnerHTML={{
+              __html: content,
+            }}
+          />{" "}
+          <button
+            onClick={() => openDetail(id)}
+            className="text-blue-500 underline font-medium hover:text-blue-700"
+          >
+            Nhấn vào đây để xem chi tiết {name}
+          </button>
         </span>
       );
     }
 
-    // Nếu chỉ có link thôi (AI tự trả ra link)
     if (linkMatch) {
       return (
         <span
@@ -107,11 +103,9 @@ export default function TemplatesPage() {
       );
     }
 
-    // Mặc định
     return <span>{text}</span>;
   };
 
-  // Gọi Gemini API có xét giá
   const callGeminiAI = async (input, conversationHistory, templates) => {
     if (!GEMINI_API_KEY) {
       throw new Error("API key của Gemini không được cấu hình!");
@@ -143,30 +137,21 @@ export default function TemplatesPage() {
       Bạn là trợ lý AI tư vấn template website của Weplant.
       - Đây là lịch sử hội thoại: ${historyText}
       - Người dùng vừa hỏi: "${input}"
-      - Hãy đề xuất 1 template phù hợp nhất dựa trên:
-         + Mục đích sử dụng (nếu có)
-         + Phong cách mô tả
-         + MỨC GIÁ phù hợp với túi tiền người dùng (nếu họ nhắc đến ngân sách, ví dụ “rẻ”, “miễn phí”, “dưới 1 triệu”, v.v.)
-      - Nếu người dùng không nói rõ ngân sách, bạn chọn template có chất lượng tốt nhất phù hợp mô tả.
+      - Hãy đề xuất 1 template phù hợp nhất...
       - Format chính xác: "Đề xuất template: [Tên đầy đủ] với ID [templateId số]."
       -Đề xuất template: [Tên đầy đủ] với ID [templateId].  
 👉    -Xem chi tiết: http://localhost:5173/templates/[templateId]  
       -Giải thích ngắn gọn vì sao template này phù hợp.
-      - Viết ngắn gọn, thân thiện, tiếng Việt.
-      - Nếu không có template phù hợp, gợi ý liên hệ đội ngũ Weplant để tạo mẫu riêng.
     `;
 
     const result = await model.generateContent(prompt);
     const generatedText = result.response.text();
-
     if (!generatedText) {
       throw new Error("Không nhận được phản hồi từ Gemini API!");
     }
-
     return generatedText;
   };
 
-  // Submit chat
   const handleChatSubmit = async () => {
     if (!chatInput.trim()) {
       setChatMessages([
@@ -321,28 +306,35 @@ export default function TemplatesPage() {
               key={tpl.templateId}
               className="bg-white shadow rounded-2xl overflow-hidden hover:shadow-lg transition"
             >
-              <Link to={`/templates/${tpl.templateId}`}>
-                <div className="h-40 bg-gray-200">
-                  {tpl.images?.length > 0 ? (
-                    <img
-                      src={tpl.images[0].imageUrl}
-                      alt={tpl.templateName}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center h-full text-gray-500">
-                      Không có ảnh
-                    </div>
-                  )}
-                </div>
-              </Link>
+              {/* Ảnh → dùng button để chặn default Link & chắc chắn lưu id trước */}
+              <button
+                type="button"
+                onClick={() => openDetail(tpl.templateId)}
+                className="block w-full h-40 bg-gray-200"
+              >
+                {tpl.images?.length > 0 ? (
+                  <img
+                    src={tpl.images[0].imageUrl}
+                    alt={tpl.templateName}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full text-gray-500">
+                    Không có ảnh
+                  </div>
+                )}
+              </button>
+
               <div className="p-4">
-                <Link
-                  to={`/templates/${tpl.templateId}`}
-                  className="font-semibold text-lg mb-2 block hover:text-blue-600"
+                {/* Tiêu đề */}
+                <button
+                  type="button"
+                  onClick={() => openDetail(tpl.templateId)}
+                  className="font-semibold text-lg mb-2 block hover:text-blue-600 text-left"
                 >
                   {tpl.templateName}
-                </Link>
+                </button>
+
                 <p className="text-gray-600 text-sm mb-2">
                   {tpl.description || "Chưa có mô tả"}
                 </p>
@@ -354,20 +346,21 @@ export default function TemplatesPage() {
                       })
                     : "Miễn phí"}
                 </p>
-                <div className="mt-3">
-                  <Link
-                    to={`/templates/${tpl.templateId}`}
-                    className="text-sm text-blue-600 hover:underline font-medium"
-                  >
-                    Xem chi tiết →
-                  </Link>
-                </div>
+
+                {/* Xem chi tiết */}
+                <button
+                  type="button"
+                  onClick={() => openDetail(tpl.templateId)}
+                  className="text-sm text-blue-600 hover:underline font-medium"
+                >
+                  Xem chi tiết →
+                </button>
               </div>
             </div>
           ))}
       </section>
 
-      {/* ✅ Footer */}
+      {/* Footer */}
       <footer className="w-full bg-gray-900 text-gray-300 mt-20">
         <div className="grid md:grid-cols-4 gap-8 px-10 lg:px-20 py-12 max-w-7xl mx-auto">
           <div>

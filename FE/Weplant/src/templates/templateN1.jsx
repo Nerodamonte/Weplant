@@ -13,6 +13,9 @@ import {
   ChevronRight,
   CheckCircle2,
 } from "lucide-react";
+import UseTemplateButton from "../components/UseTemplateButton";
+import { useParams } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 // ⚠️ Ghi chú:
 // - Đây là trang Landing Page React + Tailwind chỉ UI (không hook dữ liệu).
@@ -73,6 +76,7 @@ const DestinationCard = ({ img, title, tag, price }) => (
         </span>
       </div>
     </div>
+
     <button className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-800 backdrop-blur transition hover:bg-white">
       Khám phá <ChevronRight className="h-4 w-4" />
     </button>
@@ -117,9 +121,16 @@ const PackageCard = ({ name, price, perks, highlight }) => (
 );
 
 export default function TravelLandingPage() {
+  const { id } = useParams();
+  const location = useLocation();
+  const fromState = location.state?.templateId;
+  const fromQuery = new URLSearchParams(location.search).get("templateId");
+  const fromSession = sessionStorage.getItem("lastTemplateId");
+  const templateId = fromState || id || fromQuery || fromSession || "";
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800">
       {/* ===== NAVBAR ===== */}
+      <UseTemplateButton templateId={id} />
       <header className="sticky top-0 z-40 w-full border-b border-white/20 bg-white/80 backdrop-blur">
         <Container className="flex h-16 items-center justify-between">
           <a className="flex items-center gap-2 font-semibold" href="#home">
