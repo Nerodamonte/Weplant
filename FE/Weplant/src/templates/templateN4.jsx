@@ -12,7 +12,9 @@ import {
   Phone,
   BadgeCheck,
 } from "lucide-react";
-
+import UseTemplateButton from "../components/UseTemplateButton";
+import { useParams } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 // LDP Thời trang – chỉ UI (clone vibe SimplePage fashion). Không có logic dữ liệu.
 // Palette: đen/xám tối giản, ảnh demo Unsplash. Responsive + framer-motion nhẹ.
 
@@ -96,9 +98,16 @@ const ProductCard = ({ img, title, price }) => (
 );
 
 export default function FashionLandingPage() {
+  const { id } = useParams();
+  const location = useLocation();
+  const fromState = location.state?.templateId;
+  const fromQuery = new URLSearchParams(location.search).get("templateId");
+  const fromSession = sessionStorage.getItem("lastTemplateId");
+  const templateId = fromState || id || fromQuery || fromSession || "";
   return (
     <div className="min-h-screen bg-neutral-50 text-neutral-900">
       {/* NAV */}
+      <UseTemplateButton templateId={id} />
       <header className="sticky top-0 z-40 w-full border-b border-white/20 bg-white/80 backdrop-blur">
         <Container className="flex h-16 items-center justify-between">
           <a href="#home" className="flex items-center gap-2 font-semibold">

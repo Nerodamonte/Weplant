@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
+
 export default function StartProjectForm({ onSubmit }) {
   const [active, setActive] = useState("Trang Chủ");
 
@@ -27,7 +28,14 @@ export default function StartProjectForm({ onSubmit }) {
 
   const API = "/api";
   const navigate = useNavigate();
-  const { state } = useLocation();
+
+  // ★ lấy cả state + query
+  const location = useLocation();
+  const state = location.state || {};
+  const searchTemplateId = new URLSearchParams(location.search).get(
+    "templateId"
+  );
+  const stateTemplateId = state?.templateId;
 
   // ===== UserId + Token guard =====
   const stateUserId = state?.userId;
@@ -56,6 +64,21 @@ export default function StartProjectForm({ onSubmit }) {
       },
     });
   };
+
+  // ★ Nhận templateId từ state / query và set vào form ngay khi vào trang
+  useEffect(() => {
+    const incomingId =
+      stateTemplateId != null && stateTemplateId !== ""
+        ? String(stateTemplateId)
+        : searchTemplateId != null && searchTemplateId !== ""
+        ? String(searchTemplateId)
+        : "";
+
+    if (incomingId && form.templateId !== incomingId) {
+      setForm((f) => ({ ...f, templateId: incomingId }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stateTemplateId, searchTemplateId]);
 
   // ===== Fetch packages =====
   useEffect(() => {
@@ -103,7 +126,6 @@ export default function StartProjectForm({ onSubmit }) {
         if (!res.ok) throw new Error("Không lấy được danh sách template.");
         const json = await res.json();
         const data = json?.data || [];
-        // chuẩn hoá: {id, name, desc}
         const mapped = data
           .map((t) => ({
             id: t.template_id ?? t.templateId,
@@ -139,7 +161,6 @@ export default function StartProjectForm({ onSubmit }) {
     if (!form.projectName.trim()) e.projectName = "Nhập tên dự án.";
     if (!form.description.trim()) e.description = "Mô tả không được để trống.";
     if (!form.packageId) e.packageId = "Chọn gói (package).";
-    // templateId OPTIONAL → không validate
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -160,7 +181,6 @@ export default function StartProjectForm({ onSubmit }) {
       };
       if (form.templateId) body.templateId = Number(form.templateId);
 
-      // Nếu cha có override
       if (onSubmit) {
         await onSubmit({
           project_name: body.projectName,
@@ -168,12 +188,10 @@ export default function StartProjectForm({ onSubmit }) {
           package_id: body.packageId,
           ...(body.templateId ? { template_id: body.templateId } : {}),
         });
-        // thành công -> về /authen
         navigate("/authen", { replace: true });
         return;
       }
 
-      // Gọi API thật
       const res = await authFetch(`${API}/projects/create`, {
         method: "POST",
         body: JSON.stringify(body),
@@ -189,7 +207,6 @@ export default function StartProjectForm({ onSubmit }) {
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json?.message || "Tạo dự án thất bại.");
 
-      // OK -> về /authen
       navigate("/authen", { replace: true });
     } catch (err) {
       setErrMsg(err?.message || "Không thể tạo dự án.");
@@ -205,7 +222,11 @@ export default function StartProjectForm({ onSubmit }) {
       <nav className="w-full bg-white shadow-sm">
         <div className="max-w-7xl mx-auto flex justify-between items-center px-10 py-4">
           <div className="flex items-center gap-2">
-            <img src={logo} alt="weplant logo" className="h-16 w-auto object-contain" />
+            <img
+              src={logo}
+              alt="weplant logo"
+              className="h-16 w-auto object-contain"
+            />
             <span className="text-blue-600 font-bold text-xl">weplant</span>
           </div>
           <div className="flex gap-8">

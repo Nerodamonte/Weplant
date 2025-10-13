@@ -13,7 +13,9 @@ import {
   ChevronRight,
   Phone,
 } from "lucide-react";
-
+import UseTemplateButton from "../components/UseTemplateButton";
+import { useParams } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 // LDP Mỹ phẩm – chỉ UI (clone vibe SimplePage). Không có logic gọi API.
 // Palette: rose / pink nhẹ nhàng, layout responsive, ảnh minh hoạ Unsplash.
 
@@ -115,9 +117,16 @@ const PriceCard = ({ name, price, perks, highlight }) => (
 );
 
 export default function CosmeticsLandingPage() {
+  const { id } = useParams();
+  const location = useLocation();
+  const fromState = location.state?.templateId;
+  const fromQuery = new URLSearchParams(location.search).get("templateId");
+  const fromSession = sessionStorage.getItem("lastTemplateId");
+  const templateId = fromState || id || fromQuery || fromSession || "";
   return (
     <div className="min-h-screen bg-rose-50 text-rose-900">
       {/* NAV */}
+      <UseTemplateButton templateId={id} /> 
       <header className="sticky top-0 z-40 w-full border-b border-white/30 bg-white/80 backdrop-blur">
         <Container className="flex h-16 items-center justify-between">
           <a href="#home" className="flex items-center gap-2 font-semibold">
