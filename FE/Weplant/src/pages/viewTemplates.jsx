@@ -17,6 +17,24 @@ export default function TemplatesPage() {
   const API = "/api";
   const GEMINI_API_KEY = "AIzaSyBip7sULJoCXfitgcPyWK20j5RIEYI6LtM";
 
+  // ===== NEW: homePath + handler cho Trang Chủ =====
+  const [homePath, setHomePath] = useState("/");
+  useEffect(() => {
+    const refreshHome = () => {
+      const hasToken = !!localStorage.getItem("authToken");
+      setHomePath(hasToken ? "/authen" : "/");
+    };
+    refreshHome();
+    window.addEventListener("storage", refreshHome);
+    return () => window.removeEventListener("storage", refreshHome);
+  }, []);
+  const handleHomeClick = (e) => {
+    e.preventDefault();
+    const hasToken = !!localStorage.getItem("authToken");
+    navigate(hasToken ? "/authen" : "/");
+  };
+  // =================================================
+
   const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
   const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
@@ -55,11 +73,9 @@ export default function TemplatesPage() {
     navigate(`/templates/${tid}`, { state: { templateId: Number(tid) } });
   };
 
-  // Parse phản hồi AI → chèn link có thể nhấn (đã sửa để lưu id)
   const parseAIResponse = (text) => {
     const match = text.match(/Đề xuất template:\s*"([^"]+)"\s*với ID\s*(\d+)/i);
     const linkMatch = text.match(/https?:\/\/[^\s]+/gi);
-
     let content = text;
 
     if (linkMatch) {
@@ -74,15 +90,9 @@ export default function TemplatesPage() {
     if (match) {
       const name = match[1];
       const id = match[2];
-
-      // Dùng Link React nhưng vẫn muốn lưu id trước khi điều hướng
       return (
         <span>
-          <span
-            dangerouslySetInnerHTML={{
-              __html: content,
-            }}
-          />{" "}
+          <span dangerouslySetInnerHTML={{ __html: content }} />{" "}
           <button
             onClick={() => openDetail(id)}
             className="text-blue-500 underline font-medium hover:text-blue-700"
@@ -94,13 +104,7 @@ export default function TemplatesPage() {
     }
 
     if (linkMatch) {
-      return (
-        <span
-          dangerouslySetInnerHTML={{
-            __html: content,
-          }}
-        />
-      );
+      return <span dangerouslySetInnerHTML={{ __html: content }} />;
     }
 
     return <span>{text}</span>;
@@ -190,7 +194,7 @@ export default function TemplatesPage() {
 
   return (
     <div className="font-sans bg-white">
-      {/* Navbar */}
+      {/* Navbar (Trang Chủ theo token) */}
       <nav className="w-full bg-white shadow-sm fixed top-0 left-0 z-50">
         <div className="max-w-7xl mx-auto flex justify-between items-center px-10 py-4">
           <div className="flex items-center gap-2">
@@ -198,8 +202,19 @@ export default function TemplatesPage() {
             <span className="text-blue-600 font-bold text-xl">weplant</span>
           </div>
           <div className="flex gap-8">
+            {/* Trang Chủ động */}
+            <Link
+              to={homePath}
+              onClick={handleHomeClick}
+              className={`text-sm font-medium transition ${
+                active === "Trang Chủ" ? "text-blue-600" : "text-gray-700"
+              } hover:text-blue-600`}
+            >
+              Trang Chủ
+            </Link>
+
+            {/* Các mục còn lại giữ nguyên */}
             {[
-              { label: "Trang Chủ", path: "/authen" },
               { label: "Template", path: "/templates" },
               { label: "Về Chúng Tôi", path: "/about" },
               { label: "Liên Hệ", path: "/contact" },
@@ -306,7 +321,6 @@ export default function TemplatesPage() {
               key={tpl.templateId}
               className="bg-white shadow rounded-2xl overflow-hidden hover:shadow-lg transition"
             >
-              {/* Ảnh → dùng button để chặn default Link & chắc chắn lưu id trước */}
               <button
                 type="button"
                 onClick={() => openDetail(tpl.templateId)}
@@ -326,7 +340,6 @@ export default function TemplatesPage() {
               </button>
 
               <div className="p-4">
-                {/* Tiêu đề */}
                 <button
                   type="button"
                   onClick={() => openDetail(tpl.templateId)}
@@ -347,7 +360,6 @@ export default function TemplatesPage() {
                     : "Miễn phí"}
                 </p>
 
-                {/* Xem chi tiết */}
                 <button
                   type="button"
                   onClick={() => openDetail(tpl.templateId)}
