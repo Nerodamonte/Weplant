@@ -134,8 +134,8 @@ export default function AuthenticatedPage() {
 
           <Reveal from="right" delay={120} className="flex gap-6 md:gap-8">
             {[
-              { label: "Trang Chủ", path: "/" },
-              { label: "Dịch Vụ", path: "/services" },
+              { label: "Trang Chủ", path: "/authen" },
+              { label: "Dịch Vụ", path: "/pricing" },
               { label: "Template", path: "/templates" },
               { label: "Về Chúng Tôi", path: "/about" },
               { label: "Liên Hệ", path: "/contact" },

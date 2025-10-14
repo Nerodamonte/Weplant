@@ -14,7 +14,7 @@ export default function RegisterPage() {
     agree: false,
   });
 
-  const [message, setMessage] = useState({ text: "", type: "" });  // {text, type: 'success' | 'error'}
+  const [message, setMessage] = useState({ text: "", type: "" }); // {text, type: 'success' | 'error'}
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -59,15 +59,18 @@ export default function RegisterPage() {
       }
 
       if (response.ok) {
-        setMessage({ 
-          text: "Đăng ký thành công! Vui lòng kiểm tra email để kích hoạt tài khoản.", 
-          type: "success" 
+        setMessage({
+          text: "Đăng ký thành công! Vui lòng kiểm tra email để kích hoạt tài khoản.",
+          type: "success",
         });
         setTimeout(() => {
           navigate("/login");
-        }, 3000);  // Tăng thời gian để user đọc
+        }, 3000); // Tăng thời gian để user đọc
       } else {
-        setMessage({ text: data?.message || "Đăng ký thất bại!", type: "error" });
+        setMessage({
+          text: data?.message || "Đăng ký thất bại!",
+          type: "error",
+        });
       }
     } catch (error) {
       console.error("Lỗi:", error);
@@ -80,14 +83,18 @@ export default function RegisterPage() {
       {/* Header */}
       <header className="w-full flex justify-between items-center px-8 py-4 bg-white shadow-sm fixed top-0">
         <div className="flex items-center gap-2">
-          <img src={logo} alt="Weplant Logo" className="h-16 w-auto object-contain" />
+          <img
+            src={logo}
+            alt="Weplant Logo"
+            className="h-16 w-auto object-contain"
+          />
           <span className="font-bold text-lg text-gray-700">Weplant</span>
         </div>
         <nav className="flex gap-6 text-gray-600 font-medium">
           <a href="/">Trang chủ</a>
           <a href="/templates">Templates</a>
-          <a href="#">Dịch vụ</a>
-          <a href="#">Liên hệ</a>
+          <a href="/pricing">Dịch vụ</a>
+          <a href="/contact">Liên hệ</a>
         </nav>
       </header>
 
@@ -230,11 +237,9 @@ export default function RegisterPage() {
 
           {/* Message */}
           {message.text && (
-            <p 
+            <p
               className={`text-center text-sm mt-2 ${
-                message.type === "success" 
-                  ? "text-green-600" 
-                  : "text-red-500"
+                message.type === "success" ? "text-green-600" : "text-red-500"
               }`}
             >
               {message.text}
@@ -256,7 +261,7 @@ export default function RegisterPage() {
           <p>Cần hỗ trợ?</p>
           <p>
             <a href="mailto:support@weplant.com" className="text-white">
-            contact.weplant@gmail.com
+              contact.weplant@gmail.com
             </a>{" "}
             | 094 7722102
           </p>

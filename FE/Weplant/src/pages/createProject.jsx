@@ -231,7 +231,7 @@ export default function StartProjectForm({ onSubmit }) {
           </div>
           <div className="flex gap-8">
             {[
-              { label: "Trang Chủ", path: "/" },
+              { label: "Trang Chủ", path: "/authen" },
               { label: "Template", path: "/templates" },
               { label: "Về Chúng Tôi", path: "/about" },
               { label: "Liên Hệ", path: "/contact" },

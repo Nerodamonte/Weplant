@@ -1,14 +1,45 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Check, X, Zap } from "lucide-react";
 
 export default function PricingPage() {
   const [active, setActive] = useState("Dịch Vụ");
 
+  // ==== NAV helpers ====
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const [homePath, setHomePath] = useState("/");
+
+  useEffect(() => {
+    const refreshHome = () => {
+      const hasToken = !!localStorage.getItem("authToken");
+      setHomePath(hasToken ? "/authen" : "/");
+    };
+    refreshHome();
+    window.addEventListener("storage", refreshHome);
+    return () => window.removeEventListener("storage", refreshHome);
+  }, []);
+
+  const handleHomeClick = (e) => {
+    e.preventDefault();
+    const hasToken = !!localStorage.getItem("authToken");
+    navigate(hasToken ? "/authen" : "/");
+  };
+
+  const isActive = (path) =>
+    pathname === path || (path !== "/" && pathname.startsWith(path));
+
+  // ==== CTA buttons ====
+  const handleSelectPackage = () => {
+    const hasToken = !!localStorage.getItem("authToken");
+    navigate(hasToken ? "/create-project" : "/login");
+  };
+
   return (
     <div className="font-sans bg-gradient-to-br from-blue-50 to-white min-h-screen flex flex-col">
-      {/* Navbar */}
-      <nav className="w-full bg-white shadow-sm fixed top-0 left-0 z-50">
-        <div className="max-w-7xl mx-auto flex justify-between items-center px-10 py-4">
+      {/* Navbar (đã sửa) */}
+      <nav className="w-full bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/70 shadow-sm fixed top-0 left-0 z-50">
+        <div className="max-w-7xl mx-auto flex justify-between items-center px-6 md:px-10 py-3 md:py-4">
           {/* Logo */}
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 bg-blue-600 rounded flex items-center justify-center">
@@ -18,28 +49,59 @@ export default function PricingPage() {
           </div>
 
           {/* Menu */}
-          <div className="flex gap-8">
-            {[
-              { label: "Trang Chủ", path: "/" },
-              { label: "Dịch Vụ", path: "/pricing" },
-              { label: "Template", path: "/templates" },
-              { label: "Về Chúng Tôi", path: "/about" },
-              { label: "Liên Hệ", path: "/contact" },
-            ].map((item) => (
-              <button
-                key={item.label}
-                onClick={() => setActive(item.label)}
-                className={`text-sm font-medium transition ${
-                  active === item.label ? "text-blue-600" : "text-gray-700"
-                } hover:text-blue-600`}
-              >
-                {item.label}
-              </button>
-            ))}
+          <div className="flex gap-6 md:gap-8">
+            <Link
+              to={homePath}
+              onClick={handleHomeClick}
+              className={`text-sm font-medium transition ${
+                isActive("/authen") || isActive("/")
+                  ? "text-blue-600"
+                  : "text-gray-700"
+              } hover:text-blue-600`}
+            >
+              Trang Chủ
+            </Link>
+
+            <Link
+              to="/pricing"
+              onClick={() => setActive("Dịch Vụ")}
+              className={`text-sm font-medium transition ${
+                isActive("/pricing") ? "text-blue-600" : "text-gray-700"
+              } hover:text-blue-600`}
+            >
+              Dịch Vụ
+            </Link>
+
+            <Link
+              to="/templates"
+              className={`text-sm font-medium transition ${
+                isActive("/templates") ? "text-blue-600" : "text-gray-700"
+              } hover:text-blue-600`}
+            >
+              Template
+            </Link>
+
+            <Link
+              to="/about"
+              className={`text-sm font-medium transition ${
+                isActive("/about") ? "text-blue-600" : "text-gray-700"
+              } hover:text-blue-600`}
+            >
+              Về Chúng Tôi
+            </Link>
+
+            <Link
+              to="/contact"
+              className={`text-sm font-medium transition ${
+                isActive("/contact") ? "text-blue-600" : "text-gray-700"
+              } hover:text-blue-600`}
+            >
+              Liên Hệ
+            </Link>
           </div>
 
-          {/* User Avatar */}
-          <div className="flex items-center gap-2">
+          {/* User Avatar (giữ nguyên) */}
+          <div className="hidden md:flex items-center gap-2">
             <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
               <span className="text-gray-600 text-sm">👤</span>
             </div>
@@ -61,9 +123,6 @@ export default function PricingPage() {
 
       <div className="bg-gradient-to-br from-blue-50 to-white min-h-screen py-16 px-6">
         <div className="max-w-4xl mx-auto">
-          {/* Tiêu đề */}
-         
-
           {/* 2 Gói dịch vụ */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
             {/* Gói Template */}
@@ -78,7 +137,10 @@ export default function PricingPage() {
                 <li>✔️ Thời gian hoàn thành: 1-3 tuần</li>
                 <li>✔️ Hỗ trợ kỹ thuật qua email</li>
               </ul>
-              <button className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
+              <button
+                onClick={handleSelectPackage}
+                className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+              >
                 Chọn Gói Template
               </button>
             </div>
@@ -98,7 +160,10 @@ export default function PricingPage() {
                 <li>✔️ Thời gian hoàn thành: 20-30 ngày</li>
                 <li>✔️ Hỗ trợ email & điện thoại</li>
               </ul>
-              <button className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
+              <button
+                onClick={handleSelectPackage}
+                className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+              >
                 Chọn Gói Custom
               </button>
             </div>
@@ -142,40 +207,40 @@ export default function PricingPage() {
             </table>
           </div>
         </div>
-        
       </div>
 
       {/* Call to Action */}
-      <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6">
-        <div className="">
-          <h3 className="text-center font-semibold mb-2 text-gray-800">
-            Chưa chắc chắn về lựa chọn?
-          </h3>
-          <p className="text-center mb-6">
-            Khám phá bộ sưu tập template của chúng tôi để có cái nhìn tổng quan
-            trước khi quyết định.
-          </p>
-          <button className="px-6 py-3 border-2 border-blue-500 text-blue-600 font-semibold rounded-lg hover:bg-blue-50 transition flex items-center gap-2 mx-auto">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="w-5 h-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M14 5l7 7m0 0l-7 7m7-7H3"
-              />
-            </svg>
-            Xem Thêm Template
-          </button>
-        </div>
+      <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6 mx-6 md:mx-auto md:max-w-4xl">
+        <h3 className="text-center font-semibold mb-2 text-gray-800">
+          Chưa chắc chắn về lựa chọn?
+        </h3>
+        <p className="text-center mb-6">
+          Khám phá bộ sưu tập template của chúng tôi để có cái nhìn tổng quan
+          trước khi quyết định.
+        </p>
+        <Link
+          to="/templates"
+          className="px-6 py-3 border-2 border-blue-500 text-blue-600 font-semibold rounded-lg hover:bg-blue-50 transition flex items-center gap-2 mx-auto"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="w-5 h-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M14 5l7 7m0 0l-7 7m7-7H3"
+            />
+          </svg>
+          Xem Thêm Template
+        </Link>
       </div>
 
-      {/* Footer */}
+      {/* Footer (giữ nguyên layout) */}
       <footer className="bg-slate-800 text-gray-300 py-16 px-6 mt-auto">
         <div className="grid md:grid-cols-3 gap-12 max-w-6xl mx-auto">
           <div>
@@ -215,7 +280,7 @@ export default function PricingPage() {
         </div>
 
         <div className="text-center text-gray-500 text-sm mt-12 pt-8 border-t border-gray-700">
-          © 2024 weplant. Tất cả quyền được bảo lưu.
+          © 2025 weplant. Tất cả quyền được bảo lưu.
         </div>
       </footer>
     </div>
