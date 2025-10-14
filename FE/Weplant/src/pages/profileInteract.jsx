@@ -16,7 +16,8 @@ export default function ProfileEditPage() {
     role: "CUSTOMER",
   });
   const [saving, setSaving] = useState(false);
-
+  
+  const API = "/api";
   const API_USERS = "http://45.252.248.204:8080/api/users";
   const API_PROJECTS = "http://45.252.248.204:8080/api/projects";
 
@@ -48,7 +49,7 @@ export default function ProfileEditPage() {
 
     (async () => {
       try {
-        const res = await authFetch(`${API_USERS}/user/${id}`);
+        const res = await authFetch(`${API}/users/user/${id}`);
         if (res.status === 401 || res.status === 403) {
           localStorage.removeItem("authToken");
           localStorage.removeItem("isAuthenticated");
@@ -90,7 +91,7 @@ export default function ProfileEditPage() {
 
     try {
       setSaving(true);
-      const res = await authFetch(`${API_USERS}/userUpdate/${id}`, {
+      const res = await authFetch(`${API}/users/userUpdate/${id}`, {
         method: "PUT",
         body: JSON.stringify(body),
       });
@@ -163,7 +164,7 @@ export default function ProfileEditPage() {
         setProjErr("");
 
         const res = await authFetch(
-          `${API_PROJECTS}/getProjectByUserId/${userIdForProjects}`
+          `${API}/projects/getProjectByUserId/${userIdForProjects}`
         );
         if (res.status === 401 || res.status === 403) {
           localStorage.removeItem("authToken");
@@ -213,7 +214,7 @@ export default function ProfileEditPage() {
       setOpenDetail(true);
 
       const res = await authFetch(
-        `${API_PROJECTS}/getProjectById/${projectId}`
+        `${API}/projects/getProjectById/${projectId}`
       );
       if (res.status === 401 || res.status === 403) {
         localStorage.removeItem("authToken");
@@ -268,7 +269,7 @@ export default function ProfileEditPage() {
       // chỉ gửi mô tả
       const body = { description: editDesc };
 
-      const res = await authFetch(`${API_PROJECTS}/update/${editFor.id}`, {
+      const res = await authFetch(`${API}/projects/update/${editFor.id}`, {
         method: "PUT",
         body: JSON.stringify(body),
       });
