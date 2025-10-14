@@ -144,7 +144,7 @@ export default function TemplatesPage() {
       - Hãy đề xuất 1 template phù hợp nhất...
       - Format chính xác: "Đề xuất template: [Tên đầy đủ] với ID [templateId số]."
       -Đề xuất template: [Tên đầy đủ] với ID [templateId].  
-👉    -Xem chi tiết: http://localhost:5173/templates/[templateId]  
+👉    -Xem chi tiết: https://weplant-lac.vercel.app/templates/[templateId]  
       -Giải thích ngắn gọn vì sao template này phù hợp.
     `;
 
