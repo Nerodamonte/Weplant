@@ -322,14 +322,18 @@ export default function ProfileEditPage() {
       <nav className="w-full bg-white shadow-sm fixed top-0 left-0 z-50">
         <div className="max-w-7xl mx-auto flex justify-between items-center px-10 py-4">
           <div className="flex items-center gap-2">
-            <img src={logo} alt="weplant logo" className="h-16 w-auto object-contain" />
+            <img
+              src={logo}
+              alt="weplant logo"
+              className="h-16 w-auto object-contain"
+            />
             <span className="text-blue-600 font-bold text-xl">weplant</span>
           </div>
 
           <div className="flex gap-8">
             {[
-              { label: "Trang Chủ", path: "/" },
-              { label: "Dịch Vụ", path: "/services" },
+              { label: "Trang Chủ", path: "/authen" },
+              { label: "Dịch Vụ", path: "/pricing" },
               { label: "Template", path: "/templates" },
               { label: "Về Chúng Tôi", path: "/about" },
               { label: "Liên Hệ", path: "/contact" },
@@ -362,7 +366,6 @@ export default function ProfileEditPage() {
             title="Quay về trang chính"
           >
             <span className="text-lg">←</span>
-            
           </button>
         </div>
 
