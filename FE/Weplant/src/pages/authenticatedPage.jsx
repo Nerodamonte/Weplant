@@ -61,6 +61,10 @@ export default function AuthenticatedPage() {
   const navigate = useNavigate();
 
   const API = "http://45.252.248.204:8080/api";
+
+  // ==== trạng thái đăng nhập để điều hướng Trang Chủ + show Logout
+  const [loggedIn, setLoggedIn] = useState(!!localStorage.getItem("authToken"));
+
   const authFetch = (url, options = {}) => {
     const token = localStorage.getItem("authToken") || "";
     return fetch(url, {
@@ -77,6 +81,8 @@ export default function AuthenticatedPage() {
     const isAuthenticated = localStorage.getItem("isAuthenticated");
     const token = localStorage.getItem("authToken");
     const userEmail = localStorage.getItem("userEmail");
+
+    setLoggedIn(!!token);
 
     if (!isAuthenticated || !token) {
       navigate("/login");
@@ -114,6 +120,27 @@ export default function AuthenticatedPage() {
     fetchUser();
   }, [navigate]);
 
+  // ===== Điều hướng Trang Chủ theo token
+  const handleHomeClick = (e) => {
+    e.preventDefault();
+    const hasToken = !!localStorage.getItem("authToken");
+    navigate(hasToken ? "/authen" : "/");
+  };
+
+  // ===== Đăng xuất
+  const handleLogout = () => {
+    try {
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("isAuthenticated");
+      localStorage.removeItem("userId");
+      localStorage.removeItem("userEmail");
+      sessionStorage.removeItem("lastTemplateId");
+    } finally {
+      setLoggedIn(false);
+      navigate("/", { replace: true });
+    }
+  };
+
   if (error)
     return <div className="text-center mt-20 text-red-600">{error}</div>;
   if (!user) return <div className="text-center mt-20">Loading...</div>;
@@ -132,9 +159,23 @@ export default function AuthenticatedPage() {
             <span className="text-blue-600 font-bold text-xl">weplant</span>
           </Reveal>
 
-          <Reveal from="right" delay={120} className="flex gap-6 md:gap-8">
+          <Reveal
+            from="right"
+            delay={120}
+            className="flex items-center gap-6 md:gap-8"
+          >
+            {/* Trang Chủ: click -> / nếu chưa login, /authen nếu đã login */}
+            <Link
+              to={loggedIn ? "/authen" : "/"}
+              onClick={handleHomeClick}
+              className={`text-sm font-medium transition ${
+                active === "Trang Chủ" ? "text-blue-600" : "text-gray-700"
+              } hover:text-blue-600`}
+            >
+              Trang Chủ
+            </Link>
+
             {[
-              { label: "Trang Chủ", path: "/authen" },
               { label: "Dịch Vụ", path: "/pricing" },
               { label: "Template", path: "/templates" },
               { label: "Về Chúng Tôi", path: "/about" },
@@ -151,6 +192,17 @@ export default function AuthenticatedPage() {
                 {item.label}
               </Link>
             ))}
+
+            {/* Nút Đăng xuất */}
+            {loggedIn && (
+              <button
+                onClick={handleLogout}
+                className="ml-2 rounded-lg bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-200"
+                title="Đăng xuất"
+              >
+                Đăng xuất
+              </button>
+            )}
           </Reveal>
         </div>
       </nav>
