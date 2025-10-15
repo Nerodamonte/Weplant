@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Mail, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "../App.css";
-
+import logo from "../assets/logo.png";
 const API = "/api";
 
 export default function LoginPage() {
@@ -64,11 +64,7 @@ export default function LoginPage() {
             <p className="text-gray-500 mt-2 text-center">
               Kết nối bạn với đội ngũ thiết kế chuyên nghiệp
             </p>
-            <img
-              src="https://cdn-icons-png.flaticon.com/512/733/733553.png"
-              alt="Logo"
-              className="w-56 mt-10"
-            />
+            <img src={logo} alt="Weplant Logo" className="w-56 mt-10" />
           </div>
         </div>
 
@@ -82,7 +78,8 @@ export default function LoginPage() {
               Đăng Nhập Vào Weplant
             </h2>
             <p className="text-gray-500 text-sm mb-6">
-              Đăng nhập để bắt đầu tạo website hoặc khám phá các template của bạn
+              Đăng nhập để bắt đầu tạo website hoặc khám phá các template của
+              bạn
             </p>
 
             {error && (
