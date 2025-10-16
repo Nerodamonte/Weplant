@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Loader2, CreditCard, QrCode } from "lucide-react";
+import { Loader2, CreditCard } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function PaymentListPage() {
@@ -7,8 +7,9 @@ export default function PaymentListPage() {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [qrCode, setQrCode] = useState(null);
+  const [qrCodes, setQrCodes] = useState({}); // ✅ Lưu QR theo paymentId
 
+  // Hàm fetch có token (giống bên AuthenticatedPage)
   const authFetch = (url, options = {}) => {
     const token = localStorage.getItem("authToken") || "";
     return fetch(url, {
@@ -21,6 +22,7 @@ export default function PaymentListPage() {
     });
   };
 
+  // ✅ Lấy danh sách thanh toán
   useEffect(() => {
     const fetchPayments = async () => {
       try {
@@ -33,9 +35,7 @@ export default function PaymentListPage() {
 
         const response = await authFetch(`${API}/payments/getByUser/${userId}`);
         if (response.status === 401 || response.status === 403) {
-          throw new Error(
-            "Bạn không có quyền truy cập. Vui lòng đăng nhập lại."
-          );
+          throw new Error("Bạn không có quyền truy cập. Vui lòng đăng nhập lại.");
         }
         if (!response.ok) throw new Error("Không thể tải danh sách thanh toán");
 
@@ -53,7 +53,7 @@ export default function PaymentListPage() {
     fetchPayments();
   }, []);
 
-  // 👉 Hàm gọi API lấy QR
+  // ✅ Hàm gọi API lấy QR cho từng paymentId
   const handlePayment = async (paymentId) => {
     try {
       const res = await authFetch(`${API}/payments/getQrCode/${paymentId}`);
@@ -61,11 +61,25 @@ export default function PaymentListPage() {
       const data = await res.json();
 
       console.log("QR data:", data);
-      setQrCode(data.data); // backend trả về chuỗi base64 hoặc link
+
+      // Lưu QR riêng cho từng paymentId
+      setQrCodes((prev) => ({
+        ...prev,
+        [paymentId]: data.data,
+      }));
     } catch (err) {
       console.error("Lỗi lấy QR:", err);
       alert("Không thể tạo QR Code, vui lòng thử lại!");
     }
+  };
+
+  // ✅ Hàm ẩn mã QR
+  const hideQr = (paymentId) => {
+    setQrCodes((prev) => {
+      const newCodes = { ...prev };
+      delete newCodes[paymentId];
+      return newCodes;
+    });
   };
 
   return (
@@ -74,6 +88,7 @@ export default function PaymentListPage() {
         Danh Sách Thanh Toán
       </h1>
 
+      {/* Loading / Error / Empty */}
       {loading ? (
         <div className="flex justify-center items-center h-40">
           <Loader2 className="animate-spin text-blue-600 w-8 h-8" />
@@ -81,9 +96,7 @@ export default function PaymentListPage() {
       ) : error ? (
         <div className="text-center text-red-500 font-medium">{error}</div>
       ) : payments.length === 0 ? (
-        <div className="text-center text-gray-500">
-          Bạn chưa có thanh toán nào.
-        </div>
+        <div className="text-center text-gray-500">Bạn chưa có thanh toán nào.</div>
       ) : (
         <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-sm overflow-hidden">
           <table className="w-full text-sm text-left border-collapse">
@@ -100,14 +113,21 @@ export default function PaymentListPage() {
             <tbody>
               {payments.map((p) => (
                 <tr key={p.paymentId} className="border-t hover:bg-gray-50">
+                  {/* Mã payment */}
                   <td className="px-6 py-4 font-medium text-gray-800 flex items-center space-x-2">
                     <CreditCard className="w-4 h-4 text-blue-500" />
                     <span>{p.paymentId}</span>
                   </td>
+
+                  {/* Mô tả */}
                   <td className="px-6 py-4">{p.description}</td>
+
+                  {/* Giá */}
                   <td className="px-6 py-4 text-blue-600 font-semibold">
                     {p.price?.toLocaleString("vi-VN") ?? 0} ₫
                   </td>
+
+                  {/* Ngày thanh toán */}
                   <td className="px-6 py-4 text-gray-600">
                     {p.payDated
                       ? new Date(p.payDated).toLocaleDateString("vi-VN", {
@@ -119,6 +139,8 @@ export default function PaymentListPage() {
                         })
                       : "—"}
                   </td>
+
+                  {/* Trạng thái */}
                   <td className="px-6 py-4">
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-medium ${
@@ -133,15 +155,38 @@ export default function PaymentListPage() {
                     </span>
                   </td>
 
-                  {/* ✅ Nút Thanh toán */}
+                  {/* Thao tác */}
                   <td className="px-6 py-4 text-center">
                     {p.paymentStatus !== "SUCCESS" && (
-                      <button
-                        onClick={() => handlePayment(p.paymentId)}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 transition"
-                      >
-                        Thanh Toán
-                      </button>
+                      <>
+                        <button
+                          onClick={() => handlePayment(p.paymentId)}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 transition"
+                        >
+                          Thanh Toán
+                        </button>
+
+                        {/* ✅ Hiển thị QR riêng */}
+                        {qrCodes[p.paymentId] && (
+                          <div className="flex flex-col items-center mt-3">
+                            <img
+                              src={
+                                qrCodes[p.paymentId].startsWith("http")
+                                  ? qrCodes[p.paymentId]
+                                  : `data:image/png;base64,${qrCodes[p.paymentId]}`
+                              }
+                              alt="QR Code"
+                              className="w-40 h-40 border rounded-lg shadow-sm"
+                            />
+                            <button
+                              onClick={() => hideQr(p.paymentId)}
+                              className="mt-2 text-xs text-red-500 hover:underline"
+                            >
+                              Ẩn mã QR
+                            </button>
+                          </div>
+                        )}
+                      </>
                     )}
                   </td>
                 </tr>
@@ -151,34 +196,9 @@ export default function PaymentListPage() {
         </div>
       )}
 
-      {qrCode && (
-        <div className="flex flex-col items-center mt-10">
-          <h2 className="text-lg font-semibold mb-4">Mã QR Thanh Toán</h2>
-
-          <img
-            src={
-              qrCode.startsWith("http")
-                ? qrCode
-                : `data:image/png;base64,${qrCode}`
-            }
-            alt="QR Code"
-            className="w-56 h-56 border rounded-xl shadow-md"
-          />
-
-          <button
-            onClick={() => setQrCode(null)}
-            className="mt-4 text-sm text-red-500 hover:underline"
-          >
-            Ẩn mã QR
-          </button>
-        </div>
-      )}
-
+      {/* Nút quay lại */}
       <div className="text-center mt-10">
-        <Link
-          to="/templates"
-          className="text-blue-600 hover:underline text-sm font-medium"
-        >
+        <Link to="/templates" className="text-blue-600 hover:underline text-sm font-medium">
           ← Quay lại Template
         </Link>
       </div>
