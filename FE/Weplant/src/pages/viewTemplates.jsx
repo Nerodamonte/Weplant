@@ -3,8 +3,13 @@ import "../App.css";
 import { Link, useNavigate } from "react-router-dom";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import logo from "../assets/logo.png";
+import { useParams, useLocation } from "react-router-dom";
+import UseTemplateButton from "../components/UseTemplateButton";
 
 export default function TemplatesPage() {
+  // Lấy ID từ URL dù route không có khai báo :id
+  const location = useLocation();
+
   const [active, setActive] = useState("Template");
   const [templates, setTemplates] = useState([]);
   const [error, setError] = useState("");
@@ -49,6 +54,21 @@ export default function TemplatesPage() {
       },
     });
   };
+
+  useEffect(() => {
+    // Tách đường dẫn
+    const segments = location.pathname.split("/").filter(Boolean);
+    const lastSegment = segments[segments.length - 1]; // VD: "6" hoặc "templates"
+    const queryId = new URLSearchParams(location.search).get("templateId");
+    const finalId = queryId || (Number(lastSegment) ? lastSegment : null);
+
+    if (finalId && !isNaN(finalId)) {
+      sessionStorage.setItem("lastTemplateId", String(finalId));
+      console.log("💾 Lưu lastTemplateId =", finalId);
+    } else {
+      console.log("⚠️ Không có templateId hợp lệ trong URL");
+    }
+  }, [location.pathname, location.search]);
 
   useEffect(() => {
     const fetchTemplates = async () => {
@@ -137,7 +157,7 @@ export default function TemplatesPage() {
       )
       .join("\n");
 
-    // 👉 Prompt hướng dẫn rõ ràng để AI không nhầm ID
+    // 👉 Prompt hướng dẫn rõ ràng
     const prompt = `
 Dưới đây là danh sách templates hiện có (vui lòng chú ý Template ID là số thật, không phải số thứ tự):
 ${templatesText}
@@ -151,11 +171,11 @@ Bạn là trợ lý AI tư vấn template website của Weplant.
 - **Chỉ chọn template có ID nằm trong danh sách ở trên.**
 - Tuyệt đối **không tự tạo ID** hoặc chọn theo số thứ tự hiển thị.
 
-📋 Format trả lời chính xác tuyệt đối:
+📋 Format trả lời chính xác:
 "Đề xuất template: [Tên đầy đủ] với ID [templateId số]."
 Sau đó ghi thêm:
 "Xem chi tiết: http://localhost:5173/templates/[templateId]"
-Cuối cùng, giải thích ngắn gọn vì sao template này phù hợp.
+Rồi giải thích ngắn gọn vì sao template này phù hợp.
 
 Ví dụ hợp lệ:
 Đề xuất template: Du lịch với ID 6.
@@ -171,7 +191,18 @@ Template này phù hợp vì...
       throw new Error("Không nhận được phản hồi từ Gemini API!");
     }
 
-    return generatedText;
+    // 👉 Phân tích lấy ID + tên
+    const match = generatedText.match(
+      /Đề xuất template:\s*"([^"]+)"\s*với ID\s*(\d+)/i
+    );
+    const templateName = match ? match[1] : null;
+    const templateId = match ? parseInt(match[2], 10) : null;
+
+    return {
+      text: generatedText,
+      templateId,
+      templateName,
+    };
   };
 
   const handleChatSubmit = async () => {
@@ -190,12 +221,27 @@ Template này phù hợp vì...
     setChatMessages(updatedMessages);
 
     try {
-      const aiResponse = await callGeminiAI(
-        chatInput,
-        updatedMessages,
-        templates
-      );
-      const parsedResponse = parseAIResponse(aiResponse);
+      // 🧠 Gọi AI
+      const {
+        text: aiText,
+        templateId,
+        templateName,
+      } = await callGeminiAI(chatInput, updatedMessages, templates);
+
+      // 🧩 Parse text thành JSX có link
+      const parsedResponse = parseAIResponse(aiText);
+
+      // 💾 Nếu AI trả về ID thật → lưu lại để nút "SỬ DỤNG GIAO DIỆN NÀY" hoạt động
+      if (templateId) {
+        sessionStorage.setItem("lastTemplateId", String(templateId));
+      }
+
+      // 🧭 (Tuỳ chọn) nếu bạn muốn tự động mở trang chi tiết AI chọn
+      // if (templateId) {
+      //   navigate(`/templates/${templateId}`, { state: { templateId: Number(templateId) } });
+      // }
+
+      // 💬 Cập nhật hội thoại
       setChatMessages((prev) => [
         ...prev,
         { sender: "ai", content: parsedResponse },
@@ -257,6 +303,7 @@ Template này phù hợp vì...
         <h1 className="text-3xl font-bold text-gray-800 mb-4">
           Khám Phá Các Template Website
         </h1>
+
         <p className="text-gray-600 max-w-2xl mx-auto">
           Chat với AI để tìm template phù hợp nhất với nhu cầu và ngân sách của
           bạn!
