@@ -17,10 +17,7 @@ import UseTemplateButton from "../components/UseTemplateButton";
 import { useParams } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 
-// ⚠️ Ghi chú:
-// - Đây là trang Landing Page React + Tailwind chỉ UI (không hook dữ liệu).
-// - Dùng ảnh minh hoạ từ Unsplash. Thay bằng ảnh thực tế nếu cần.
-// - Có hiệu ứng framer-motion nhẹ, layout responsive, vibes du lịch hiện đại.
+
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },

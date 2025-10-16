@@ -1,7 +1,16 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
+import UseTemplateButton from "../components/UseTemplateButton";
+import { useParams } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 export default function Template1Page() {
+  const { id } = useParams();
+  const location = useLocation();
+  const fromState = location.state?.templateId;
+  const fromQuery = new URLSearchParams(location.search).get("templateId");
+  const fromSession = sessionStorage.getItem("lastTemplateId");
+  const templateId = fromState || id || fromQuery || fromSession || "";
   const [theme, setTheme] = useState("dark");
 
   const toggleTheme = () => {
@@ -15,6 +24,7 @@ export default function Template1Page() {
       }`}
     >
       {/* Navbar */}
+      <UseTemplateButton templateId={id} />
       <header
         className={`fixed top-0 left-0 right-0 z-50 ${
           theme === "dark"

@@ -19,8 +19,7 @@ import {
 import UseTemplateButton from "../components/UseTemplateButton";
 import { useParams } from "react-router-dom";
 import { useLocation } from "react-router-dom";
-// LDP Xe ô tô – chỉ UI (clone vibe SimplePage). Không có logic dữ liệu.
-// Palette: đen/xám sang, điểm nhấn đỏ. Ảnh demo Unsplash. Responsive + framer-motion nhẹ.
+
 
 const fadeUp = {
   hidden: { opacity: 0, y: 22 },

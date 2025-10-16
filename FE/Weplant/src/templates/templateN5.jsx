@@ -15,8 +15,7 @@ import {
 import UseTemplateButton from "../components/UseTemplateButton";
 import { useParams } from "react-router-dom";
 import { useLocation } from "react-router-dom";
-// LDP Cửa hàng hoa – chỉ UI (clone vibe SimplePage). Không có logic dữ liệu.
-// Palette: green/pink fresh, ảnh demo Unsplash. Responsive + framer-motion nhẹ.
+
 
 const fadeUp = {
   hidden: { opacity: 0, y: 22 },

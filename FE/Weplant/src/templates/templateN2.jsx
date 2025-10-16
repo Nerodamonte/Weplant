@@ -16,8 +16,7 @@ import {
 import UseTemplateButton from "../components/UseTemplateButton";
 import { useParams } from "react-router-dom";
 import { useLocation } from "react-router-dom";
-// LDP Mỹ phẩm – chỉ UI (clone vibe SimplePage). Không có logic gọi API.
-// Palette: rose / pink nhẹ nhàng, layout responsive, ảnh minh hoạ Unsplash.
+
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
