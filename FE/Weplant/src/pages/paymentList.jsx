@@ -34,11 +34,15 @@ export default function PaymentListPage() {
         // Gọi API có kèm token
         const response = await authFetch(`${API}/payments/getByUser/${userId}`);
         if (response.status === 401 || response.status === 403) {
-          throw new Error("Bạn không có quyền truy cập. Vui lòng đăng nhập lại.");
+          throw new Error(
+            "Bạn không có quyền truy cập. Vui lòng đăng nhập lại."
+          );
         }
         if (!response.ok) throw new Error("Không thể tải danh sách thanh toán");
 
         const data = await response.json();
+        setPayments(Array.isArray(data) ? data : []);
+
         setPayments(data);
       } catch (err) {
         console.error("Lỗi tải payment:", err);
