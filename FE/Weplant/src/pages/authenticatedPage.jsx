@@ -180,6 +180,7 @@ export default function AuthenticatedPage() {
               { label: "Dịch Vụ", path: "/pricing" },
               { label: "Template", path: "/templates" },
               { label: "Về Chúng Tôi", path: "/about" },
+              { label: "Payment List", path: "/payments" }, 
               { label: "Liên Hệ", path: "/contact" },
             ].map((item) => (
               <Link
