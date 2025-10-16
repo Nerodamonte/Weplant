@@ -32,6 +32,7 @@ import TemplateN7 from "./templates/templateN7.jsx";
 import TemplateN8 from "./templates/templateN8.jsx";
 import TemplateN9 from "./templates/templateN9.jsx";
 import TemplateN10 from "./templates/templateN10.jsx";
+import PaymentListPage from "./pages/paymentList.jsx";
 
 function App() {
   return (
@@ -66,6 +67,7 @@ function App() {
         <Route path="/templates/13" element={<TemplateN8 />} />
         <Route path="/templates/14" element={<TemplateN9 />} />
         <Route path="/templates/15" element={<TemplateN10 />} />
+        <Route path="/payments" element={<PaymentListPage />} />
       </Routes>
     </BrowserRouter>
   );

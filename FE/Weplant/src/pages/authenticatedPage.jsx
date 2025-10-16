@@ -60,7 +60,7 @@ export default function AuthenticatedPage() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const API = "http://45.252.248.204:8080/api";
+ 
 
   // ==== trạng thái đăng nhập để điều hướng Trang Chủ + show Logout
   const [loggedIn, setLoggedIn] = useState(!!localStorage.getItem("authToken"));
@@ -180,6 +180,7 @@ export default function AuthenticatedPage() {
               { label: "Dịch Vụ", path: "/pricing" },
               { label: "Template", path: "/templates" },
               { label: "Về Chúng Tôi", path: "/about" },
+              { label: "Payment List", path: "/payments" }, 
               { label: "Liên Hệ", path: "/contact" },
             ].map((item) => (
               <Link
