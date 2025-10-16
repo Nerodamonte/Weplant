@@ -33,7 +33,9 @@ export default function PaymentListPage() {
 
         const response = await authFetch(`${API}/payments/getByUser/${userId}`);
         if (response.status === 401 || response.status === 403) {
-          throw new Error("Bạn không có quyền truy cập. Vui lòng đăng nhập lại.");
+          throw new Error(
+            "Bạn không có quyền truy cập. Vui lòng đăng nhập lại."
+          );
         }
         if (!response.ok) throw new Error("Không thể tải danh sách thanh toán");
 
@@ -149,15 +151,20 @@ export default function PaymentListPage() {
         </div>
       )}
 
-      {/* ✅ Hiển thị QR Code nếu có */}
       {qrCode && (
         <div className="flex flex-col items-center mt-10">
           <h2 className="text-lg font-semibold mb-4">Mã QR Thanh Toán</h2>
+
           <img
-            src={qrCode.startsWith("data:image") ? qrCode : `data:image/png;base64,${qrCode}`}
+            src={
+              qrCode.startsWith("http")
+                ? qrCode
+                : `data:image/png;base64,${qrCode}`
+            }
             alt="QR Code"
             className="w-56 h-56 border rounded-xl shadow-md"
           />
+
           <button
             onClick={() => setQrCode(null)}
             className="mt-4 text-sm text-red-500 hover:underline"
@@ -168,7 +175,10 @@ export default function PaymentListPage() {
       )}
 
       <div className="text-center mt-10">
-        <Link to="/templates" className="text-blue-600 hover:underline text-sm font-medium">
+        <Link
+          to="/templates"
+          className="text-blue-600 hover:underline text-sm font-medium"
+        >
           ← Quay lại Template
         </Link>
       </div>
