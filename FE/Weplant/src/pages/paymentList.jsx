@@ -90,20 +90,36 @@ export default function PaymentListPage() {
                     <CreditCard className="w-4 h-4 text-blue-500" />
                     <span>{p.paymentId}</span>
                   </td>
+
                   <td className="px-6 py-4">{p.description}</td>
+
                   <td className="px-6 py-4 text-blue-600 font-semibold">
-                    {p.price.toLocaleString("vi-VN")} ₫
+                    {p.price?.toLocaleString("vi-VN") ?? 0} ₫
                   </td>
-                  <td className="px-6 py-4 text-gray-500">—</td>
+
+                  <td className="px-6 py-4 text-gray-600">
+                    {p.payDated
+                      ? new Date(p.payDated).toLocaleDateString("vi-VN", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
+                      : "—"}
+                  </td>
+
                   <td className="px-6 py-4">
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        p.price > 0
+                        p.paymentStatus === "SUCCESS"
                           ? "bg-green-100 text-green-700"
-                          : "bg-yellow-100 text-yellow-700"
+                          : p.paymentStatus === "PENDING"
+                          ? "bg-yellow-100 text-yellow-700"
+                          : "bg-red-100 text-red-700"
                       }`}
                     >
-                      {p.price > 0 ? "ĐÃ THANH TOÁN" : "CHƯA THANH TOÁN"}
+                      {p.paymentStatus}
                     </span>
                   </td>
                 </tr>
