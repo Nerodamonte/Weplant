@@ -43,8 +43,7 @@ export default function PaymentListPage() {
         const data = await response.json();
 
         console.log("Kết quả API:", data); // 👉 để xem thực tế backend trả gì
-        setPayments(Array.isArray(data) ? data : []);
-        
+        setPayments(Array.isArray(data.data) ? data.data : []);
       } catch (err) {
         console.error("Lỗi tải payment:", err);
         setError(err.message);
@@ -91,22 +90,20 @@ export default function PaymentListPage() {
                     <CreditCard className="w-4 h-4 text-blue-500" />
                     <span>{p.paymentId}</span>
                   </td>
-                  <td className="px-6 py-4">{p.templateName}</td>
+                  <td className="px-6 py-4">{p.description}</td>
                   <td className="px-6 py-4 text-blue-600 font-semibold">
-                    {p.amount.toLocaleString("vi-VN")} ₫
+                    {p.price.toLocaleString("vi-VN")} ₫
                   </td>
-                  <td className="px-6 py-4">
-                    {new Date(p.paymentDate).toLocaleDateString("vi-VN")}
-                  </td>
+                  <td className="px-6 py-4 text-gray-500">—</td>
                   <td className="px-6 py-4">
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        p.status === "SUCCESS"
+                        p.price > 0
                           ? "bg-green-100 text-green-700"
                           : "bg-yellow-100 text-yellow-700"
                       }`}
                     >
-                      {p.status}
+                      {p.price > 0 ? "ĐÃ THANH TOÁN" : "CHƯA THANH TOÁN"}
                     </span>
                   </td>
                 </tr>
