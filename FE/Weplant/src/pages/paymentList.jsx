@@ -3,10 +3,23 @@ import { Loader2, CreditCard } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function PaymentListPage() {
-  const API = "/api"; // <-- bạn dùng như thế này đúng
+  const API = "/api";
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // Hàm fetch có token (giống bên AuthenticatedPage)
+  const authFetch = (url, options = {}) => {
+    const token = localStorage.getItem("authToken") || "";
+    return fetch(url, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(options.headers || {}),
+      },
+    });
+  };
 
   useEffect(() => {
     const fetchPayments = async () => {
@@ -18,12 +31,17 @@ export default function PaymentListPage() {
           return;
         }
 
-        const response = await fetch(`${API}/payments/getByUser/${userId}`);
+        // Gọi API có kèm token
+        const response = await authFetch(`${API}/payments/getByUser/${userId}`);
+        if (response.status === 401 || response.status === 403) {
+          throw new Error("Bạn không có quyền truy cập. Vui lòng đăng nhập lại.");
+        }
         if (!response.ok) throw new Error("Không thể tải danh sách thanh toán");
 
         const data = await response.json();
         setPayments(data);
       } catch (err) {
+        console.error("Lỗi tải payment:", err);
         setError(err.message);
       } finally {
         setLoading(false);
