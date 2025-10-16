@@ -15,8 +15,7 @@ import {
 import UseTemplateButton from "../components/UseTemplateButton";
 import { useParams } from "react-router-dom";
 import { useLocation } from "react-router-dom";
-// LDP Thời trang – chỉ UI (clone vibe SimplePage fashion). Không có logic dữ liệu.
-// Palette: đen/xám tối giản, ảnh demo Unsplash. Responsive + framer-motion nhẹ.
+
 
 const fadeUp = {
   hidden: { opacity: 0, y: 22 },

@@ -1,6 +1,15 @@
 import React from "react";
+import UseTemplateButton from "../components/UseTemplateButton";
+import { useParams } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 export default function TemplateDetail4() {
+  const { id } = useParams();
+  const location = useLocation();
+  const fromState = location.state?.templateId;
+  const fromQuery = new URLSearchParams(location.search).get("templateId");
+  const fromSession = sessionStorage.getItem("lastTemplateId");
+  const templateId = fromState || id || fromQuery || fromSession || "";
   const templateInfo = {
     name: "Template Văn Phòng Phẩm Xanh",
     price: 299000,
@@ -61,6 +70,7 @@ export default function TemplateDetail4() {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-blue-100 to-white text-gray-800">
       {/* Header */}
+      <UseTemplateButton templateId={id} />
       <header className="bg-blue-700 text-white py-5 shadow-md sticky top-0 z-50">
         <div className="container mx-auto flex justify-between items-center px-6">
           <h1 className="text-3xl font-bold tracking-wide">
@@ -103,7 +113,9 @@ export default function TemplateDetail4() {
         <h2 className="text-3xl font-semibold text-blue-800 mb-4">
           {templateInfo.name}
         </h2>
-        <p className="text-gray-700 max-w-2xl mx-auto mb-6">{templateInfo.desc}</p>
+        <p className="text-gray-700 max-w-2xl mx-auto mb-6">
+          {templateInfo.desc}
+        </p>
         <p className="text-3xl font-bold text-green-600 mb-6">
           {templateInfo.price.toLocaleString()}₫
         </p>

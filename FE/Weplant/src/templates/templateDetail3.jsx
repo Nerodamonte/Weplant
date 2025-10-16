@@ -1,11 +1,21 @@
 // src/pages/TemplateDetail3.jsx
 import React from "react";
 import { Link } from "react-router-dom";
+import UseTemplateButton from "../components/UseTemplateButton";
+import { useParams } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 export default function TemplateDetail3() {
+  const { id } = useParams();
+  const location = useLocation();
+  const fromState = location.state?.templateId;
+  const fromQuery = new URLSearchParams(location.search).get("templateId");
+  const fromSession = sessionStorage.getItem("lastTemplateId");
+  const templateId = fromState || id || fromQuery || fromSession || "";
   return (
     <div className="min-h-screen bg-black text-gray-100 antialiased">
       {/* ---------- Header ---------- */}
+      <UseTemplateButton templateId={id} />
       <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b border-gray-800">
         <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">

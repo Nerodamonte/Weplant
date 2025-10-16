@@ -101,22 +101,6 @@ export default function RegisterPage() {
       {/* Form */}
       <div className="mt-24 w-full max-w-md bg-white rounded-2xl shadow-md p-8">
         <div className="flex flex-col items-center mb-6">
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-8 w-8 text-gray-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M5.121 17.804A9 9 0 1118.364 4.56 9 9 0 015.121 17.804z"
-              />
-            </svg>
-          </div>
           <h2 className="text-xl font-bold text-gray-800 mt-4">
             Đăng Ký Tài Khoản Weplant
           </h2>
