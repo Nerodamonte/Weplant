@@ -41,9 +41,10 @@ export default function PaymentListPage() {
         if (!response.ok) throw new Error("Không thể tải danh sách thanh toán");
 
         const data = await response.json();
-        setPayments(Array.isArray(data) ? data : []);
 
-        setPayments(data);
+        console.log("Kết quả API:", data); // 👉 để xem thực tế backend trả gì
+        setPayments(Array.isArray(data) ? data : []);
+        
       } catch (err) {
         console.error("Lỗi tải payment:", err);
         setError(err.message);
