@@ -3,7 +3,7 @@ import { Loader2, CreditCard, Info } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function PaymentListPage() {
-  const API = "/api";
+  const API = "http://45.252.248.204:8080/api";
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");

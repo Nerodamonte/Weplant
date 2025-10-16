@@ -65,7 +65,7 @@ export default function AuthenticatedPage() {
   // ==== trạng thái đăng nhập để điều hướng Trang Chủ + show Logout
   const [loggedIn, setLoggedIn] = useState(!!localStorage.getItem("authToken"));
 
-  const API = "/api";
+  const API = "http://45.252.248.204:8080/api";
   const authFetch = (url, options = {}) => {
     const token = localStorage.getItem("authToken") || "";
     return fetch(url, {

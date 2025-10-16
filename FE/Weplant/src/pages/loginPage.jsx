@@ -3,7 +3,7 @@ import { Mail, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "../App.css";
 
-const API = "/api";
+const API = "http://45.252.248.204:8080/api";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
