@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Mail, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import logo from "../assets/logo.png";
 import "../App.css";
 
 const API = "http://45.252.248.204:8080/api";
