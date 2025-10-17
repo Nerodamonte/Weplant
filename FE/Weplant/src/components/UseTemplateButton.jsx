@@ -5,19 +5,29 @@ export default function UseTemplateButton({ templateId }) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // gom đủ mọi nguồn để chắc chắn có id
+  // 🧩 Lấy ID từ nhiều nguồn
   const fromState = location.state?.templateId;
   const fromQuery = new URLSearchParams(location.search).get("templateId");
+
+  // 🔥 Bắt luôn ID từ đường dẫn (vd: /templates/6)
+  const pathSegments = location.pathname.split("/").filter(Boolean);
+  const fromPath =
+    pathSegments[pathSegments.length - 1] &&
+    !isNaN(pathSegments[pathSegments.length - 1])
+      ? pathSegments[pathSegments.length - 1]
+      : null;
+
   const fromSession = sessionStorage.getItem("lastTemplateId");
 
+  // 🧠 Gom lại tất cả nguồn ID
   const tid = useMemo(() => {
-    const v = templateId || fromState || fromQuery || fromSession;
+    const v = templateId || fromState || fromQuery || fromPath || fromSession;
     return v ? String(v) : "";
-  }, [templateId, fromState, fromQuery, fromSession]);
+  }, [templateId, fromState, fromQuery, fromPath, fromSession]);
 
   const goCreate = () => {
     if (!tid) return;
-    // giữ lại để trang create-project đọc được ngay
+    // Lưu lại để các trang khác dùng được
     sessionStorage.setItem("lastTemplateId", tid);
     navigate(`/create-project?templateId=${tid}`, {
       state: { templateId: Number(tid) },
