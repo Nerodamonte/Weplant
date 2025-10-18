@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import "../App.css";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
+
 export default function ProfileEditPage() {
   const { id } = useParams(); // /profile/:id (userId)
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ export default function ProfileEditPage() {
     role: "CUSTOMER",
   });
   const [saving, setSaving] = useState(false);
-  
+
   const API = "http://45.252.248.204:8080/api";
   const API_USERS = "http://45.252.248.204:8080/api/users";
   const API_PROJECTS = "http://45.252.248.204:8080/api/projects";
@@ -132,6 +133,10 @@ export default function ProfileEditPage() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailErr, setDetailErr] = useState("");
 
+  // NEW: trạng thái cho nút OK (xác nhận hoàn tất)
+  const [confirmLoading, setConfirmLoading] = useState(false);
+  const [confirmErr, setConfirmErr] = useState("");
+
   // Modal chỉnh sửa mô tả
   const [openEdit, setOpenEdit] = useState(false);
   const [editFor, setEditFor] = useState(null); // {id, name, description}
@@ -210,6 +215,7 @@ export default function ProfileEditPage() {
     try {
       setDetail(null);
       setDetailErr("");
+      setConfirmErr(""); // clear lỗi confirm khi mở lại
       setDetailLoading(true);
       setOpenDetail(true);
 
@@ -249,6 +255,45 @@ export default function ProfileEditPage() {
       setDetailErr(e.message || "Không lấy được chi tiết dự án.");
     } finally {
       setDetailLoading(false);
+    }
+  };
+
+  // NEW: Xác nhận hoàn tất (COMPLETED_CODING -> COMPLETED)
+  const handleConfirmComplete = async () => {
+    if (!detail?.id) return;
+    try {
+      setConfirmLoading(true);
+      setConfirmErr("");
+
+      const res = await authFetch(
+        `${API}/projects/updateStatus/${detail.id}?status=COMPLETED`,
+        { method: "PUT" }
+      );
+
+      if (res.status === 401 || res.status === 403) {
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("isAuthenticated");
+        navigate("/login");
+        return;
+      }
+      if (!res.ok) {
+        const txt = await res.text().catch(() => "");
+        throw new Error(txt || `HTTP ${res.status}`);
+      }
+
+      // Cập nhật UI tại chỗ
+      setDetail((d) => (d ? { ...d, status: "COMPLETED" } : d));
+      setProjects((arr) =>
+        arr.map((x) =>
+          String(x.id) === String(detail.id) ? { ...x, status: "COMPLETED" } : x
+        )
+      );
+
+      alert("Đã xác nhận hoàn tất dự án.");
+    } catch (e) {
+      setConfirmErr(e.message || "Không thể cập nhật trạng thái.");
+    } finally {
+      setConfirmLoading(false);
     }
   };
 
@@ -314,6 +359,8 @@ export default function ProfileEditPage() {
     setDetail(null);
     setDetailErr("");
     setDetailLoading(false);
+    setConfirmErr("");
+    setConfirmLoading(false);
   };
 
   return (
@@ -512,12 +559,27 @@ export default function ProfileEditPage() {
           <div className="relative z-10 w-[92%] max-w-2xl bg-white rounded-2xl shadow-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold">Chi Tiết Dự Án</h3>
-              <button
-                className="px-3 py-1 rounded-lg bg-gray-100 hover:bg-gray-200"
-                onClick={closeModal}
-              >
-                Đóng
-              </button>
+
+              <div className="flex items-center gap-2">
+                {/* NEW: nút OK khi COMPLETED_CODING */}
+                {detail?.status === "COMPLETED_CODING" && (
+                  <button
+                    onClick={handleConfirmComplete}
+                    disabled={confirmLoading}
+                    className="px-3 py-1 rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-60"
+                    title="Xác nhận hoàn tất (chuyển sang COMPLETED)"
+                  >
+                    {confirmLoading ? "Đang xác nhận..." : "OK"}
+                  </button>
+                )}
+
+                <button
+                  className="px-3 py-1 rounded-lg bg-gray-100 hover:bg-gray-200"
+                  onClick={closeModal}
+                >
+                  Đóng
+                </button>
+              </div>
             </div>
 
             {detailLoading ? (
@@ -594,6 +656,11 @@ export default function ProfileEditPage() {
                     <div className="text-sm text-gray-600">—</div>
                   )}
                 </div>
+
+                {/* NEW: lỗi khi xác nhận */}
+                {confirmErr && (
+                  <div className="text-sm text-rose-600">{confirmErr}</div>
+                )}
               </div>
             )}
           </div>
