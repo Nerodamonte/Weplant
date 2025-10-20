@@ -133,9 +133,16 @@ export default function ProfileEditPage() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailErr, setDetailErr] = useState("");
 
-  // NEW: trạng thái cho nút OK (xác nhận hoàn tất)
+  // NEW: trạng thái cho nút/luồng OK -> Feedback -> Completed
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [confirmErr, setConfirmErr] = useState("");
+
+  // NEW: Popup feedback
+  const [openFeedback, setOpenFeedback] = useState(false);
+  const [fbRating, setFbRating] = useState(5);
+  const [fbContent, setFbContent] = useState("");
+  const [fbSaving, setFbSaving] = useState(false);
+  const [fbErr, setFbErr] = useState("");
 
   // Modal chỉnh sửa mô tả
   const [openEdit, setOpenEdit] = useState(false);
@@ -258,13 +265,47 @@ export default function ProfileEditPage() {
     }
   };
 
-  // NEW: Xác nhận hoàn tất (COMPLETED_CODING -> COMPLETED)
-  const handleConfirmComplete = async () => {
+  // CLICK OK: mở popup feedback (chưa đổi trạng thái ngay)
+  const handleOpenFeedback = () => {
+    setFbRating(5);
+    setFbContent("");
+    setFbErr("");
+    setOpenFeedback(true);
+  };
+
+  // Gửi feedback -> nếu OK thì updateStatus COMPLETED
+  const handleSubmitFeedback = async () => {
     if (!detail?.id) return;
     try {
-      setConfirmLoading(true);
-      setConfirmErr("");
+      setFbSaving(true);
+      setFbErr("");
 
+      // Body FeedbackRequest (giả định): { projectId, rating, content, userId? }
+      const body = {
+        projectId: detail.id,
+        rating: fbRating,
+        content: fbContent?.trim() || "",
+        userId: Number(localStorage.getItem("userId")) || undefined,
+      };
+
+      const resFb = await authFetch(`${API}/feedbacks/create`, {
+        method: "POST",
+        body: JSON.stringify(body),
+      });
+
+      if (resFb.status === 401 || resFb.status === 403) {
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("isAuthenticated");
+        navigate("/login");
+        return;
+      }
+      if (!resFb.ok) {
+        const txt = await resFb.text().catch(() => "");
+        throw new Error(txt || `Feedback HTTP ${resFb.status}`);
+      }
+
+      // Sau khi feedback thành công -> cập nhật trạng thái dự án sang COMPLETED
+      setConfirmLoading(true);
       const res = await authFetch(
         `${API}/projects/updateStatus/${detail.id}?status=COMPLETED`,
         { method: "PUT" }
@@ -278,7 +319,7 @@ export default function ProfileEditPage() {
       }
       if (!res.ok) {
         const txt = await res.text().catch(() => "");
-        throw new Error(txt || `HTTP ${res.status}`);
+        throw new Error(txt || `UpdateStatus HTTP ${res.status}`);
       }
 
       // Cập nhật UI tại chỗ
@@ -289,15 +330,17 @@ export default function ProfileEditPage() {
         )
       );
 
-      alert("Đã xác nhận hoàn tất dự án.");
+      setOpenFeedback(false);
+      alert("Cảm ơn phản hồi của bạn! Dự án đã được hoàn tất.");
     } catch (e) {
-      setConfirmErr(e.message || "Không thể cập nhật trạng thái.");
+      setFbErr(e.message || "Không thể gửi feedback hoặc cập nhật trạng thái.");
     } finally {
+      setFbSaving(false);
       setConfirmLoading(false);
     }
   };
 
-  // ====== mở modal chỉnh sửa mô tả ======
+  // mở modal chỉnh sửa mô tả
   const handleOpenEdit = (p) => {
     setEditFor({ id: p.id, name: p.name, description: p.description || "" });
     setEditDesc(p.description || "");
@@ -561,15 +604,15 @@ export default function ProfileEditPage() {
               <h3 className="text-lg font-semibold">Chi Tiết Dự Án</h3>
 
               <div className="flex items-center gap-2">
-                {/* NEW: nút OK khi COMPLETED_CODING */}
+                {/* nút OK: mở Feedback khi đang COMPLETED_CODING */}
                 {detail?.status === "COMPLETED_CODING" && (
                   <button
-                    onClick={handleConfirmComplete}
+                    onClick={handleOpenFeedback}
                     disabled={confirmLoading}
                     className="px-3 py-1 rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-60"
-                    title="Xác nhận hoàn tất (chuyển sang COMPLETED)"
+                    title="Xác nhận hoàn tất: nhập feedback trước khi hoàn tất"
                   >
-                    {confirmLoading ? "Đang xác nhận..." : "OK"}
+                    OK
                   </button>
                 )}
 
@@ -657,12 +700,89 @@ export default function ProfileEditPage() {
                   )}
                 </div>
 
-                {/* NEW: lỗi khi xác nhận */}
+                {/* lỗi update status (nếu có) */}
                 {confirmErr && (
                   <div className="text-sm text-rose-600">{confirmErr}</div>
                 )}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ======= MODAL: Feedback trước khi hoàn tất ======= */}
+      {openFeedback && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setOpenFeedback(false)}
+            aria-hidden="true"
+          />
+          <div className="relative z-10 w-[92%] max-w-lg bg-white rounded-2xl shadow-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Phản hồi của bạn</h3>
+              <button
+                className="px-3 py-1 rounded-lg bg-gray-100 hover:bg-gray-200"
+                onClick={() => setOpenFeedback(false)}
+              >
+                Đóng
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Mức độ hài lòng
+                </label>
+                <div className="flex items-center gap-2">
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => setFbRating(n)}
+                      className={`w-10 h-10 rounded-full border text-sm ${
+                        fbRating >= n ? "bg-green-500" : "bg-white"
+                      }`}
+                      title={`${n}/5`}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Góp ý/nhận xét
+                </label>
+                <textarea
+                  rows={5}
+                  value={fbContent}
+                  onChange={(e) => setFbContent(e.target.value)}
+                  placeholder="Hãy chia sẻ cảm nhận của bạn về sản phẩm/dịch vụ…"
+                  className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-4 focus:ring-indigo-100"
+                />
+              </div>
+
+              {fbErr && <div className="text-sm text-rose-600">{fbErr}</div>}
+
+              <div className="flex justify-end gap-2">
+                <button
+                  className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200"
+                  onClick={() => setOpenFeedback(false)}
+                  disabled={fbSaving}
+                >
+                  Hủy
+                </button>
+                <button
+                  className="px-4 py-2 rounded-lg text-white bg-green-600 hover:bg-green-700 disabled:opacity-60"
+                  onClick={handleSubmitFeedback}
+                  disabled={fbSaving}
+                >
+                  {fbSaving ? "Đang gửi…" : "Gửi & Hoàn tất"}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
