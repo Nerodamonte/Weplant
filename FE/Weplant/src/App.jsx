@@ -33,7 +33,7 @@ import TemplateN8 from "./templates/templateN8.jsx";
 import TemplateN9 from "./templates/templateN9.jsx";
 import TemplateN10 from "./templates/templateN10.jsx";
 import PaymentListPage from "./pages/paymentList.jsx";
-// import DashboardPage from "./pages/DashboardPage.jsx";
+import DashboardPage from "./pages/DashboardPage.jsx";
 function App() {
   return (
     <BrowserRouter>
@@ -57,7 +57,7 @@ function App() {
         <Route path="/forget-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/activate-account" element={<ActivateAccountPage />} />
-        {/* <Route path="/dashboard" element={<DashboardPage />} /> */}
+        <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/templates/6" element={<TemplateN1 />} />
         <Route path="/templates/7" element={<TemplateN2 />} />
         <Route path="/templates/8" element={<TemplateN3 />} />
