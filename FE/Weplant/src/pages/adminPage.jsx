@@ -618,7 +618,7 @@ export default function AdminPage() {
               href="#"
               onClick={(e) => {
                 e.preventDefault();
-                setActiveTab("Dashboard");
+                navigate("/dashboard");
               }}
               className={`pb-1 ${
                 activeTab === "Dashboard"
