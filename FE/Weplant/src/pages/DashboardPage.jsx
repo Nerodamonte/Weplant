@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
-  BarChart,
   Bar,
-  LineChart,
   Line,
   XAxis,
   YAxis,
@@ -45,9 +43,12 @@ const Card = ({ title, value, icon, color = "blue" }) => (
 /* ---------- Main Page ---------- */
 export default function DashboardPage() {
   const [stats, setStats] = useState(null);
+  const [payments, setPayments] = useState([]);
+  const [feedbacks, setFeedbacks] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Gọi API Dashboard chính
     authFetch(`${API}/dashboards/stats`)
       .then(async (res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -57,6 +58,18 @@ export default function DashboardPage() {
       })
       .catch((err) => console.error("Error fetching dashboard:", err))
       .finally(() => setLoading(false));
+
+    // Gọi danh sách Payments
+    authFetch(`${API}/payments/getAll`)
+      .then((res) => res.json())
+      .then((json) => setPayments(json.data || []))
+      .catch((err) => console.error("Error fetching payments:", err));
+
+    // Gọi danh sách Feedbacks
+    authFetch(`${API}/feedbacks/getAll`)
+      .then((res) => res.json())
+      .then((json) => setFeedbacks(json.data || []))
+      .catch((err) => console.error("Error fetching feedbacks:", err));
   }, []);
 
   if (loading)
@@ -95,36 +108,16 @@ export default function DashboardPage() {
 
         {/* Stat cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
-          <Card
-            title="Người dùng"
-            value={stats.totalUsers}
-            icon="👥"
-            color="blue"
-          />
-          <Card
-            title="Dự án"
-            value={stats.totalProjects}
-            icon="📁"
-            color="green"
-          />
+          <Card title="Người dùng" value={stats.totalUsers} icon="👥" color="blue" />
+          <Card title="Dự án" value={stats.totalProjects} icon="📁" color="green" />
           <Card
             title="Doanh thu"
             value={formatVND(stats.totalRevenue)}
             icon="💰"
             color="yellow"
           />
-          <Card
-            title="Mẫu thiết kế"
-            value={stats.totalTemplates}
-            icon="📄"
-            color="indigo"
-          />
-          <Card
-            title="Phản hồi"
-            value={stats.totalFeedbacks}
-            icon="💬"
-            color="rose"
-          />
+          <Card title="Mẫu thiết kế" value={stats.totalTemplates} icon="📄" color="indigo" />
+          <Card title="Phản hồi" value={stats.totalFeedbacks} icon="💬" color="rose" />
           <Card
             title="Dịch vụ"
             value={stats.serviceUsage?.length ?? 0}
@@ -162,12 +155,7 @@ export default function DashboardPage() {
               />
               <Legend />
               <Bar dataKey="DoanhThu" fill="#3B82F6" barSize={40} />
-              <Line
-                type="monotone"
-                dataKey="DoanhThu"
-                stroke="#10B981"
-                strokeWidth={2}
-              />
+              <Line type="monotone" dataKey="DoanhThu" stroke="#10B981" strokeWidth={2} />
             </ComposedChart>
           </ResponsiveContainer>
         </div>
@@ -181,10 +169,7 @@ export default function DashboardPage() {
             </h2>
             <div className="divide-y divide-slate-100">
               {stats.templatePurchases?.map((t, i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-between py-3"
-                >
+                <div key={i} className="flex items-center justify-between py-3">
                   <div>
                     <p className="text-sm font-medium text-slate-800">
                       {t.templateName}
@@ -208,16 +193,82 @@ export default function DashboardPage() {
             </h2>
             <div className="divide-y divide-slate-100">
               {stats.serviceUsage?.map((s, i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-between py-3"
-                >
+                <div key={i} className="flex items-center justify-between py-3">
                   <span className="text-sm font-medium text-slate-700">
                     {s.serviceName}
                   </span>
                   <span className="text-sm text-slate-900 font-semibold">
                     {s.usageCount}
                   </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Payments & Feedbacks */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+          {/* Payments */}
+          <div className="bg-white rounded-2xl shadow-sm p-6">
+            <h2 className="text-lg font-semibold text-slate-800 mb-3">
+              💳 Giao dịch gần đây
+            </h2>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm text-left text-slate-700">
+                <thead className="bg-slate-100 text-slate-600">
+                  <tr>
+                    <th className="px-3 py-2">Mã GD</th>
+                    <th className="px-3 py-2">Người dùng</th>
+                    <th className="px-3 py-2">Mô tả</th>
+                    <th className="px-3 py-2">Số tiền</th>
+                    <th className="px-3 py-2">Trạng thái</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {payments.slice(0, 6).map((p, i) => (
+                    <tr key={i} className="border-b hover:bg-slate-50">
+                      <td className="px-3 py-2">{p.paymentId}</td>
+                      <td className="px-3 py-2">{p.fullName}</td>
+                      <td className="px-3 py-2">{p.description}</td>
+                      <td className="px-3 py-2 font-medium">
+                        {formatVND(p.price)}
+                      </td>
+                      <td className="px-3 py-2">
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            p.paymentStatus === "SUCCESS"
+                              ? "bg-green-100 text-green-700"
+                              : p.paymentStatus === "FAILED"
+                              ? "bg-red-100 text-red-700"
+                              : "bg-yellow-100 text-yellow-700"
+                          }`}
+                        >
+                          {p.paymentStatus}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Feedbacks */}
+          <div className="bg-white rounded-2xl shadow-sm p-6">
+            <h2 className="text-lg font-semibold text-slate-800 mb-3">
+              💬 Phản hồi mới nhất
+            </h2>
+            <div className="divide-y divide-slate-100">
+              {feedbacks.slice(0, 6).map((f, i) => (
+                <div key={i} className="py-3">
+                  <p className="text-sm font-medium text-slate-800">
+                    {f.userName} • {f.projectName}
+                  </p>
+                  <p className="text-sm text-slate-600 mt-1">{f.content}</p>
+                  <p className="text-xs text-slate-400 mt-1">
+                    ⭐ {f.rating} •{" "}
+                    {new Date(f.createdAt).toLocaleDateString("vi-VN")}
+                  </p>
                 </div>
               ))}
             </div>
