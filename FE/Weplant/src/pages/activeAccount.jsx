@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 
-const API = "http://45.252.248.204:8080/api";
+//const API = "http://45.252.248.204:8080/api";
+const API = "/api";
 
 export default function ActivateAccountPage() {
   const [searchParams] = useSearchParams();

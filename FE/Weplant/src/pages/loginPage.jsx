@@ -4,7 +4,8 @@ import { useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
 import "../App.css";
 
-const API = "http://45.252.248.204:8080/api";
+//const API = "http://45.252.248.204:8080/api";
+const API = "/api";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");

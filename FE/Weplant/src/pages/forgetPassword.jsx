@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const API = "http://45.252.248.204:8080/api";
+//const API = "http://45.252.248.204:8080/api";
+const API = "/api";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
