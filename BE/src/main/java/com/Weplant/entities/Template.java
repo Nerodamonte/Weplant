@@ -22,6 +22,10 @@ public class Template {
     String templateName;
     String description;
     LocalDateTime createAt;
+    Long price;
+
+    @OneToMany(mappedBy = "template", cascade = CascadeType.ALL, orphanRemoval = true)
+    List<TemplateOwner> owners;
 
     @OneToMany(mappedBy = "template", cascade = CascadeType.ALL)
     List<Image> images;

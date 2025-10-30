@@ -27,11 +27,14 @@ public class Project {
     @JoinColumn(name = "templateId")
     Template template;
 
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    List<Feedback> feedbacks;
+
     @ManyToOne
     @JoinColumn(name = "packageId")
     PackageEntity packageEntity;
 
-    @OneToMany(mappedBy = "project")
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     List<Attachment> attachments;
 
     String projectName;
@@ -39,6 +42,9 @@ public class Project {
 
     @Enumerated(EnumType.STRING)
     ProjectStatus status;
+
+    String figmaLink;
+    String designFeedback;
 
     LocalDateTime createAt;
 }

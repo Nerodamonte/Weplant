@@ -24,6 +24,7 @@ public class TemplateService {
         Template template = Template.builder()
                 .templateName(request.getTemplateName())
                 .description(request.getDescription())
+                .price(request.getPrice())
                 .createAt(LocalDateTime.now())
                 .build();
         return templateRepository.save(template).getTemplateId();
@@ -35,6 +36,7 @@ public class TemplateService {
                 .templateId(template.getTemplateId())
                 .templateName(template.getTemplateName())
                 .description(template.getDescription())
+                .price(template.getPrice())
                 .createAt(template.getCreateAt())
                 .images(getImagesByTemplateId(template.getTemplateId()))
                 .build()).toList();
@@ -48,6 +50,7 @@ public class TemplateService {
         Template template = templateRepository.findById(id).orElseThrow();
         template.setTemplateName(request.getTemplateName());
         template.setDescription(request.getDescription());
+        template.setPrice(request.getPrice());
         templateRepository.save(template);
     }
 
@@ -58,5 +61,17 @@ public class TemplateService {
                         .imageUrl(image.getImageUrl())
                         .build())
                 .toList();
+    }
+
+    public TemplateDetailResponse getById(Long id) {
+        Template template = templateRepository.findById(id).orElseThrow();
+        return TemplateDetailResponse.builder()
+                .templateId(template.getTemplateId())
+                .templateName(template.getTemplateName())
+                .description(template.getDescription())
+                .price(template.getPrice())
+                .createAt(template.getCreateAt())
+                .images(getImagesByTemplateId(template.getTemplateId()))
+                .build();
     }
 }

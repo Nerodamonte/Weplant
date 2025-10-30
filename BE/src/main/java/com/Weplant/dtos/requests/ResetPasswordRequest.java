@@ -9,8 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 @Builder
-public class TemplateCreateRequest {
-    String templateName;
-    String description;
-    Long price;
+public class ResetPasswordRequest {
+    String token;
+    String newPassword;
 }

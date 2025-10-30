@@ -1,4 +1,4 @@
-package com.Weplant.dtos.requests;
+package com.Weplant.dtos.responses.Dashboard;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,8 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 @Builder
-public class TemplateCreateRequest {
+public class TemplatePurchaseResponse {
     String templateName;
-    String description;
-    Long price;
+    Long usageCount;
 }

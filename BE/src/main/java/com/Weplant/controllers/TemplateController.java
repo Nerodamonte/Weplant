@@ -52,4 +52,11 @@ public class TemplateController {
                 .build();
     }
 
+    @GetMapping("/getById/{id}")
+    public ApiResponse<TemplateDetailResponse> getById(@PathVariable Long id) {
+        TemplateDetailResponse response = templateService.getById(id);
+        return ApiResponse.<TemplateDetailResponse>builder()
+                .data(response)
+                .build();
+    }
 }

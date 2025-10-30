@@ -23,5 +23,7 @@ public class ProjectDetailResponse {
     String description;
     ProjectStatus status;
     LocalDateTime createAt;
+    String figmaLink;
+    String designFeedback;
     List<AttachmentUrlResponse> attachmentUrls;
 }

@@ -2,6 +2,7 @@ package com.Weplant.configurations;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -9,7 +10,9 @@ import java.util.Date;
 
 @Component
 public class JwtUtil {
-    private final String SECRET = "BWHX28bDtNd9+mWCCZ7gi52UmXIkJJzi5qqdkNZUEghdrQ7Hoal4U1B2CqFc+3uA";
+    @Value("${JWT_SIGNER_KEY}")
+    private String SECRET;
+
     private final long EXPIRATION = 1000 * 60 * 60; // 1h
 
     private Key getSigningKey() {

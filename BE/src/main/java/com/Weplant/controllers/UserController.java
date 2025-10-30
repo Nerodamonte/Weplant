@@ -33,7 +33,7 @@ public class UserController {
 
     @PutMapping("/userUpdate/{id}")
     public ApiResponse<Void> userUpdate(@RequestBody UserUpdateRequest request, @PathVariable Long id) {
-        userService.adminUpdate(id, request);
+        userService.userUpdate(id, request);
         return ApiResponse.<Void>builder()
                 .message("Người dùng đã cập nhật thành công")
                 .build();

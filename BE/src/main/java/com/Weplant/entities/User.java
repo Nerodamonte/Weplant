@@ -1,5 +1,6 @@
 package com.Weplant.entities;
 
+import com.Weplant.enums.AccountStatus;
 import com.Weplant.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
@@ -27,6 +28,15 @@ public class User implements UserDetails {
     String email;
     String password;
     Long phoneNumber;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    List<TemplateOwner> ownedTemplates;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    List<Payment> payments;
+
+    @Enumerated(EnumType.STRING)
+    AccountStatus status;
 
     @Enumerated(EnumType.STRING)
     Role role;

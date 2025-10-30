@@ -33,7 +33,12 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:5173"));
+        config.setAllowedOrigins(List.of(
+                "http://localhost:5173",
+                "https://weplant-azure.vercel.app",
+                "https://weplant1-azure.vercel.app",
+                "https://weplant-lac.vercel.app"
+        ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
@@ -50,7 +55,11 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // cho phép preflight rõ ràng (nếu cần)
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/api/auth/login", "/api/auth/register","/api/templates/getAll","/api/packages/getAll").permitAll()
+                        .requestMatchers("/api/auth/login", "/api/auth/register",
+                                "/api/templates/getAll","/api/packages/getAll",
+                                "api/auth/forgotPassword","api/auth/resetPassword",
+                                "api/auth/activateAccount","api/templates/getAll",
+                                "api/templates/getById","api/payments/sepayCallback").permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
