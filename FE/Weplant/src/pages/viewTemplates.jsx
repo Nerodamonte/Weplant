@@ -19,7 +19,8 @@ export default function TemplatesPage() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const navigate = useNavigate();
 
-  const API = "http://45.252.248.204:8080/api";
+  const API = "/api";
+  //const API = "http://45.252.248.204:8080/api";
   const GEMINI_API_KEY = "AIzaSyBip7sULJoCXfitgcPyWK20j5RIEYI6LtM";
 
   // ===== NEW: homePath + handler cho Trang Chủ =====
@@ -174,12 +175,12 @@ Bạn là trợ lý AI tư vấn template website của Weplant.
 📋 Format trả lời chính xác:
 "Đề xuất template: [Tên đầy đủ] với ID [templateId số]."
 Sau đó ghi thêm:
-"Xem chi tiết: http://localhost:5173/templates/[templateId]"
+"Xem chi tiết: https://weplant-lac.vercel.app/templates/[templateId]"
 Rồi giải thích ngắn gọn vì sao template này phù hợp.
 
 Ví dụ hợp lệ:
 Đề xuất template: Du lịch với ID 6.
-Xem chi tiết: http://localhost:5173/templates/6
+Xem chi tiết: https://weplant-lac.vercel.app/templates/6
 Template này phù hợp vì...
 `;
 

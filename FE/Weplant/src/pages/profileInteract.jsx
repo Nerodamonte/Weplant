@@ -18,7 +18,8 @@ export default function ProfileEditPage() {
   });
   const [saving, setSaving] = useState(false);
 
-  const API = "http://45.252.248.204:8080/api";
+  const API = "/api";
+  //const API = "http://45.252.248.204:8080/api";
   const API_USERS = "http://45.252.248.204:8080/api/users";
   const API_PROJECTS = "http://45.252.248.204:8080/api/projects";
 
