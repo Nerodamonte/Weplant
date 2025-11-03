@@ -30,7 +30,7 @@ export default function StartProjectForm({ onSubmit }) {
   const API = "/api";
   const navigate = useNavigate();
 
-  // ★ lấy cả state + query
+  // ====== route state / query ======
   const location = useLocation();
   const state = location.state || {};
   const searchTemplateId = new URLSearchParams(location.search).get(
@@ -53,7 +53,7 @@ export default function StartProjectForm({ onSubmit }) {
     if (!token) navigate("/login");
   }, [stateUserId, navigate]);
 
-  // helper gắn Bearer
+  // ---- helper fetch kèm Bearer
   const authFetch = (url, options = {}) => {
     const token = localStorage.getItem("authToken") || "";
     return fetch(url, {
@@ -66,7 +66,7 @@ export default function StartProjectForm({ onSubmit }) {
     });
   };
 
-  // ★ Nhận templateId từ state / query và set vào form ngay khi vào trang
+  // ---- nhận templateId từ state/query
   useEffect(() => {
     const incomingId =
       stateTemplateId != null && stateTemplateId !== ""
@@ -74,12 +74,29 @@ export default function StartProjectForm({ onSubmit }) {
         : searchTemplateId != null && searchTemplateId !== ""
         ? String(searchTemplateId)
         : "";
-
     if (incomingId && form.templateId !== incomingId) {
       setForm((f) => ({ ...f, templateId: incomingId }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stateTemplateId, searchTemplateId]);
+
+  // ====== Chuẩn hoá package từ BE (chịu mọi biến thể field) ======
+  const normalizePackage = (p) => {
+    const id = p.package_id ?? p.packageId ?? p.id ?? p.ID ?? p.pkg_id ?? null;
+    const name =
+      p.package_name ?? p.packageName ?? p.name ?? p.title ?? "Gói không tên";
+    // Các khả năng giá:
+    const priceRaw =
+      p.package_price ??
+      p.price ??
+      p.packagePrice ??
+      p.cost ??
+      p.amount ??
+      null;
+    const desc =
+      p.package_description ?? p.description ?? p.desc ?? p.detail ?? "";
+    return { id, name, priceRaw, desc };
+  };
 
   // ===== Fetch packages =====
   useEffect(() => {
@@ -88,18 +105,15 @@ export default function StartProjectForm({ onSubmit }) {
       try {
         setLoadingPkgs(true);
         setPkgError("");
-        let res = await authFetch(`${API}/packages/getAll`);
+        const res = await authFetch(`${API}/packages/getAll`);
         if (!res.ok) throw new Error("Không lấy được danh sách gói.");
         const json = await res.json();
-        const data = json?.data || [];
-        const mapped = data
-          .map((p) => ({
-            id: p.package_id ?? p.packageId,
-            name: p.package_name ?? p.packageName,
-            price: p.package_price ?? p.price,
-            desc: p.package_description ?? p.description,
-          }))
-          .filter((x) => x.id != null);
+        const data = Array.isArray(json?.data)
+          ? json.data
+          : Array.isArray(json)
+          ? json
+          : [];
+        const mapped = data.map(normalizePackage).filter((x) => x.id != null);
         if (!mapped.length) throw new Error("Danh sách gói đang trống.");
         if (mounted) setPackages(mapped);
       } catch (e) {
@@ -123,14 +137,18 @@ export default function StartProjectForm({ onSubmit }) {
       try {
         setLoadingTpls(true);
         setTplError("");
-        let res = await authFetch(`${API}/templates/getAll`);
+        const res = await authFetch(`${API}/templates/getAll`);
         if (!res.ok) throw new Error("Không lấy được danh sách template.");
         const json = await res.json();
-        const data = json?.data || [];
+        const data = Array.isArray(json?.data)
+          ? json.data
+          : Array.isArray(json)
+          ? json
+          : [];
         const mapped = data
           .map((t) => ({
-            id: t.template_id ?? t.templateId,
-            name: t.template_name ?? t.templateName,
+            id: t.template_id ?? t.templateId ?? t.id,
+            name: t.template_name ?? t.templateName ?? t.name,
             desc: t.description ?? t.template_description ?? "",
             cover:
               t.images?.[0]?.imageUrl ?? t.thumbnail ?? t.previewUrl ?? null,
@@ -151,7 +169,7 @@ export default function StartProjectForm({ onSubmit }) {
     };
   }, []);
 
-  // ===== useMemo: item đã chọn để không .find() nhiều lần =====
+  // ===== useMemo: chọn item tránh find() nhiều lần =====
   const selectedPkg = useMemo(
     () => packages.find((p) => String(p.id) === String(form.packageId)),
     [packages, form.packageId]
@@ -392,12 +410,8 @@ export default function StartProjectForm({ onSubmit }) {
                     <div className="rounded-xl border border-slate-200 p-3">
                       {form.packageId ? (
                         <MiniInfo
-                          /* Giá làm title, tên gói làm subtitle */
-                          title={
-                            selectedPkg?.price != null
-                              ? formatVND(selectedPkg.price)
-                              : "—"
-                          }
+                          /* Giá ở tiêu đề, tên gói ở phụ đề */
+                          title={displayPrice(selectedPkg?.priceRaw)}
                           subtitle={selectedPkg?.name}
                           desc={selectedPkg?.desc}
                         />
@@ -558,6 +572,22 @@ function MiniInfo({ title, subtitle, desc }) {
       {desc && <p className="text-xs text-slate-500 mt-1">{desc}</p>}
     </div>
   );
+}
+
+/* ===== helpers ===== */
+function displayPrice(priceRaw) {
+  // Nếu là số hoặc chuỗi số => format VND
+  const num =
+    priceRaw !== null && priceRaw !== undefined && priceRaw !== ""
+      ? Number(priceRaw)
+      : NaN;
+  if (!Number.isNaN(num) && Number.isFinite(num)) return formatVND(num);
+
+  // Nếu là chuỗi không chuyển số được (vd 'Liên hệ') => hiển thị nguyên
+  if (typeof priceRaw === "string" && priceRaw.trim() !== "") return priceRaw;
+
+  // Không có giá
+  return "Chưa có giá";
 }
 
 function formatVND(n) {
