@@ -26,7 +26,7 @@ export default function StartProjectForm({ onSubmit }) {
   const [loadingTpls, setLoadingTpls] = useState(true);
   const [tplError, setTplError] = useState("");
 
- // const API = "http://45.252.248.204:8080/api";
+  // const API = "http://45.252.248.204:8080/api";
   const API = "/api";
   const navigate = useNavigate();
 
@@ -150,6 +150,16 @@ export default function StartProjectForm({ onSubmit }) {
       mounted = false;
     };
   }, []);
+
+  // ===== useMemo: item đã chọn để không .find() nhiều lần =====
+  const selectedPkg = useMemo(
+    () => packages.find((p) => String(p.id) === String(form.packageId)),
+    [packages, form.packageId]
+  );
+  const selectedTpl = useMemo(
+    () => templates.find((t) => String(t.id) === String(form.templateId)),
+    [templates, form.templateId]
+  );
 
   // ===== form =====
   const handleChange = (e) => {
@@ -382,28 +392,14 @@ export default function StartProjectForm({ onSubmit }) {
                     <div className="rounded-xl border border-slate-200 p-3">
                       {form.packageId ? (
                         <MiniInfo
+                          /* Giá làm title, tên gói làm subtitle */
                           title={
-                            packages.find(
-                              (p) => String(p.id) === String(form.packageId)
-                            )?.name
+                            selectedPkg?.price != null
+                              ? formatVND(selectedPkg.price)
+                              : "—"
                           }
-                          subtitle={
-                            packages.find(
-                              (p) => String(p.id) === String(form.packageId)
-                            )?.price != null
-                              ? `Giá tham khảo: ${formatVND(
-                                  packages.find(
-                                    (p) =>
-                                      String(p.id) === String(form.packageId)
-                                  )?.price
-                                )}`
-                              : undefined
-                          }
-                          desc={
-                            packages.find(
-                              (p) => String(p.id) === String(form.packageId)
-                            )?.desc
-                          }
+                          subtitle={selectedPkg?.name}
+                          desc={selectedPkg?.desc}
                         />
                       ) : (
                         <p className="text-sm text-slate-500">
@@ -458,16 +454,8 @@ export default function StartProjectForm({ onSubmit }) {
                     <div className="rounded-xl border border-slate-200 p-3">
                       {form.templateId ? (
                         <MiniInfo
-                          title={
-                            templates.find(
-                              (t) => String(t.id) === String(form.templateId)
-                            )?.name
-                          }
-                          desc={
-                            templates.find(
-                              (t) => String(t.id) === String(form.templateId)
-                            )?.desc
-                          }
+                          title={selectedTpl?.name}
+                          desc={selectedTpl?.desc}
                         />
                       ) : (
                         <p className="text-sm text-slate-500">
