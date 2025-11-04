@@ -92,6 +92,19 @@ export default function DashboardPage() {
     value?.toLocaleString("vi-VN", { style: "currency", currency: "VND" }) ??
     "0 ₫";
 
+  // 🔹 Format ngày giờ
+  const formatDateTime = (dateString) => {
+    if (!dateString) return "-";
+    const date = new Date(dateString);
+    return date.toLocaleString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   // 🔹 Dữ liệu biểu đồ doanh thu theo tháng
   const chartData =
     stats.monthlyRevenue?.map((m) => ({
@@ -222,6 +235,7 @@ export default function DashboardPage() {
                     <th className="px-3 py-2">Người dùng</th>
                     <th className="px-3 py-2">Mô tả</th>
                     <th className="px-3 py-2">Số tiền</th>
+                    <th className="px-3 py-2">Ngày GD</th>
                     <th className="px-3 py-2">Trạng thái</th>
                   </tr>
                 </thead>
@@ -230,14 +244,17 @@ export default function DashboardPage() {
                     <tr key={i} className="border-b hover:bg-slate-50">
                       <td className="px-3 py-2">{p.paymentId}</td>
                       <td className="px-3 py-2">{p.fullName}</td>
-                      <td className="px-3 py-2">{p.description}</td>
+                      <td className="px-3 py-2">{p.description || "-"}</td>
                       <td className="px-3 py-2 font-medium">
                         {formatVND(p.price)}
+                      </td>
+                      <td className="px-3 py-2 text-slate-600">
+                        {formatDateTime(p.payDated)}
                       </td>
                       <td className="px-3 py-2">
                         <span
                           className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            p.paymentStatus === "SUCCESS"
+                            p.paymentStatus === "SUCCESS" || p.paymentStatus === "COMPLETED"
                               ? "bg-green-100 text-green-700"
                               : p.paymentStatus === "FAILED"
                               ? "bg-red-100 text-red-700"
