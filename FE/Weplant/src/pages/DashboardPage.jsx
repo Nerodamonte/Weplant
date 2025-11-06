@@ -168,7 +168,18 @@ export default function DashboardPage() {
                 }
               />
               <Legend />
-              <Bar dataKey="DoanhThu" fill="#3B82F6" barSize={40} />
+              <Bar 
+                dataKey="DoanhThu" 
+                fill="#3B82F6" 
+                barSize={40}
+                label={{
+                  position: 'top',
+                  formatter: (value) => value.toLocaleString('vi-VN', { 
+                    maximumFractionDigits: 0 
+                  }) + ' ₫',
+                  style: { fontSize: '12px', fontWeight: 'bold' }
+                }}
+              />
               <Line type="monotone" dataKey="DoanhThu" stroke="#10B981" strokeWidth={2} />
             </ComposedChart>
           </ResponsiveContainer>
