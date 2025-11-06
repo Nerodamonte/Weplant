@@ -33,10 +33,18 @@ export default function PaymentListPage() {
         }
 
         const response = await authFetch(`${API}/payments/getByUser/${userId}`);
-        if (!response.ok) throw new Error("Không thể tải danh sách thanh toán");
-
         const data = await response.json();
-        setPayments(Array.isArray(data.data) ? data.data : []);
+
+        // Xử lý trường hợp không có payment
+        if (!response.ok || data.code === 500) {
+          if (data.message === "No payments found for user") {
+            setPayments([]);
+          } else {
+            throw new Error(data.message || "Không thể tải danh sách thanh toán");
+          }
+        } else {
+          setPayments(Array.isArray(data.data) ? data.data : []);
+        }
       } catch (err) {
         console.error("Lỗi tải payment:", err);
         setError(err.message);
@@ -96,7 +104,23 @@ export default function PaymentListPage() {
       ) : error ? (
         <div className="text-center text-red-500 font-medium">{error}</div>
       ) : payments.length === 0 ? (
-        <div className="text-center text-gray-500">Bạn chưa có thanh toán nào.</div>
+        <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-sm p-10 text-center">
+          <div className="flex justify-center mb-4">
+            <CreditCard className="w-16 h-16 text-gray-300" />
+          </div>
+          <h2 className="text-xl font-semibold text-gray-700 mb-2">
+            Chưa có thanh toán nào
+          </h2>
+          <p className="text-gray-500 mb-6">
+            Bạn chưa có giao dịch thanh toán nào trong hệ thống. Hãy tạo dự án để bắt đầu!
+          </p>
+          <Link
+            to="/templates"
+            className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition"
+          >
+            Xem Template
+          </Link>
+        </div>
       ) : (
         <>
           <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-sm overflow-hidden">
