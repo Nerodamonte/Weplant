@@ -27,14 +27,15 @@ export default function AdminPage() {
     templateName: "",
     description: "",
   }); // Form data cho template
+  // Thay đổi giá trị mặc định trong state
   const [projectFormData, setProjectFormData] = useState({
     userId: "",
     templateId: "",
     packageId: "",
     projectName: "",
     description: "",
-    status: "PENDING",
-  }); // Form data cho project
+    status: "CREATED", // Thay đổi từ PENDING sang CREATED
+  });
   const [templateMessage, setTemplateMessage] = useState(""); // Message cho template
   const [projectMessage, setProjectMessage] = useState(""); // Message cho project
   const navigate = useNavigate();
@@ -1110,10 +1111,16 @@ export default function AdminPage() {
                       <td className="px-6 py-4">
                         <span
                           className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            proj.status === "PENDING"
+                            proj.status === "CREATED"
+                              ? "bg-gray-100 text-gray-800"
+                              : proj.status === "REVIEWING"
                               ? "bg-yellow-100 text-yellow-800"
+                              : proj.status === "DEVELOPING"
+                              ? "bg-blue-100 text-blue-800"
                               : proj.status === "COMPLETED_CODING"
                               ? "bg-green-100 text-green-800"
+                              : proj.status === "COMPLETED"
+                              ? "bg-purple-100 text-purple-800"
                               : "bg-gray-100 text-gray-800"
                           }`}
                         >
@@ -1148,11 +1155,13 @@ export default function AdminPage() {
                             }
                             className="text-xs border rounded p-1"
                           >
-                            <option value="PENDING">PENDING</option>
+                            <option value="CREATED">CREATED</option>
+                            <option value="REVIEWING">REVIEWING</option>
+                            <option value="DEVELOPING">DEVELOPING</option>
                             <option value="COMPLETED_CODING">
                               COMPLETED_CODING
                             </option>
-                            {/* Add other statuses as needed */}
+                            <option value="COMPLETED">COMPLETED</option>
                           </select>
                           <button
                             onClick={() => {
@@ -1454,6 +1463,7 @@ export default function AdminPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Trạng Thái
                 </label>
+                // Và trong modal form
                 <select
                   value={projectFormData.status}
                   onChange={(e) =>
@@ -1464,9 +1474,11 @@ export default function AdminPage() {
                   }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="PENDING">PENDING</option>
+                  <option value="CREATED">CREATED</option>
+                  <option value="REVIEWING">REVIEWING</option>
+                  <option value="DEVELOPING">DEVELOPING</option>
                   <option value="COMPLETED_CODING">COMPLETED_CODING</option>
-                  {/* Add other statuses as needed */}
+                  <option value="COMPLETED">COMPLETED</option>
                 </select>
               </div>
               {projectMessage && (
