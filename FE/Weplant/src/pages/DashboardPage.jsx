@@ -122,16 +122,36 @@ export default function DashboardPage() {
 
         {/* Stat cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
-          <Card title="Người dùng" value={stats.totalUsers} icon="👥" color="blue" />
-          <Card title="Dự án" value={stats.totalProjects} icon="📁" color="green" />
+          <Card
+            title="Người dùng"
+            value={stats.totalUsers}
+            icon="👥"
+            color="blue"
+          />
+          <Card
+            title="Dự án"
+            value={stats.totalProjects}
+            icon="📁"
+            color="green"
+          />
           <Card
             title="Doanh thu"
             value={formatVND(stats.totalRevenue)}
             icon="💰"
             color="yellow"
           />
-          <Card title="Mẫu thiết kế" value={stats.totalTemplates} icon="📄" color="indigo" />
-          <Card title="Phản hồi" value={stats.totalFeedbacks} icon="💬" color="rose" />
+          <Card
+            title="Mẫu thiết kế"
+            value={stats.totalTemplates}
+            icon="📄"
+            color="indigo"
+          />
+          <Card
+            title="Phản hồi"
+            value={stats.totalFeedbacks}
+            icon="💬"
+            color="rose"
+          />
           <Card
             title="Dịch vụ"
             value={stats.serviceUsage?.length ?? 0}
@@ -150,12 +170,14 @@ export default function DashboardPage() {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis
+                width={100}
                 tickFormatter={(value) =>
-                  value.toLocaleString("vi-VN", {
+                  new Intl.NumberFormat("vi-VN", {
                     style: "currency",
                     currency: "VND",
+                    minimumFractionDigits: 0,
                     maximumFractionDigits: 0,
-                  })
+                  }).format(value)
                 }
               />
               <Tooltip
@@ -169,7 +191,12 @@ export default function DashboardPage() {
               />
               <Legend />
               <Bar dataKey="DoanhThu" fill="#3B82F6" barSize={40} />
-              <Line type="monotone" dataKey="DoanhThu" stroke="#10B981" strokeWidth={2} />
+              <Line
+                type="monotone"
+                dataKey="DoanhThu"
+                stroke="#10B981"
+                strokeWidth={2}
+              />
             </ComposedChart>
           </ResponsiveContainer>
         </div>
@@ -254,7 +281,8 @@ export default function DashboardPage() {
                       <td className="px-3 py-2">
                         <span
                           className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            p.paymentStatus === "SUCCESS" || p.paymentStatus === "COMPLETED"
+                            p.paymentStatus === "SUCCESS" ||
+                            p.paymentStatus === "COMPLETED"
                               ? "bg-green-100 text-green-700"
                               : p.paymentStatus === "FAILED"
                               ? "bg-red-100 text-red-700"
