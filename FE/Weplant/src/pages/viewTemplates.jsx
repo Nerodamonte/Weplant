@@ -17,6 +17,7 @@ export default function TemplatesPage() {
   const [chatInput, setChatInput] = useState("");
   const [chatMessages, setChatMessages] = useState([]);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isAILoading, setIsAILoading] = useState(false); // ✅ Thêm state loading cho AI
   const navigate = useNavigate();
 
   const API = "/api";
@@ -215,11 +216,17 @@ Template này phù hợp vì...
       return;
     }
 
+    // ✅ Ngăn gửi nếu đang loading
+    if (isAILoading) return;
+
     const updatedMessages = [
       ...chatMessages,
       { sender: "user", text: chatInput },
     ];
     setChatMessages(updatedMessages);
+    setChatInput(""); // ✅ Clear input ngay sau khi gửi
+
+    setIsAILoading(true); // ✅ Bật loading
 
     try {
       // 🧠 Gọi AI
@@ -237,11 +244,6 @@ Template này phù hợp vì...
         sessionStorage.setItem("lastTemplateId", String(templateId));
       }
 
-      // 🧭 (Tuỳ chọn) nếu bạn muốn tự động mở trang chi tiết AI chọn
-      // if (templateId) {
-      //   navigate(`/templates/${templateId}`, { state: { templateId: Number(templateId) } });
-      // }
-
       // 💬 Cập nhật hội thoại
       setChatMessages((prev) => [
         ...prev,
@@ -252,9 +254,9 @@ Template này phù hợp vì...
         ...prev,
         { sender: "ai", text: `Lỗi: ${err.message}` },
       ]);
+    } finally {
+      setIsAILoading(false); // ✅ Tắt loading
     }
-
-    setChatInput("");
   };
 
   return (
@@ -349,6 +351,36 @@ Template này phù hợp vì...
                   </span>
                 </div>
               ))}
+              {/* ✅ Hiển thị loading indicator */}
+              {isAILoading && (
+                <div className="text-left mb-2">
+                  <span className="inline-block p-2 rounded-lg bg-gray-100 text-gray-500">
+                    <span className="flex items-center gap-2">
+                      <svg
+                        className="animate-spin h-4 w-4"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        />
+                      </svg>
+                      AI đang suy nghĩ...
+                    </span>
+                  </span>
+                </div>
+              )}
             </div>
             <div className="flex gap-2">
               <input
@@ -358,12 +390,18 @@ Template này phù hợp vì...
                 placeholder="Nhập câu hỏi hoặc ý tưởng..."
                 className="flex-grow border rounded-lg px-4 py-2"
                 onKeyPress={(e) => e.key === "Enter" && handleChatSubmit()}
+                disabled={isAILoading} // ✅ Khóa input khi loading
               />
               <button
                 onClick={handleChatSubmit}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                disabled={isAILoading} // ✅ Khóa nút khi loading
+                className={`px-4 py-2 rounded-lg transition ${
+                  isAILoading
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-blue-600 hover:bg-blue-700"
+                } text-white`}
               >
-                Gửi
+                {isAILoading ? "Đang gửi..." : "Gửi"}
               </button>
             </div>
             <button
