@@ -252,11 +252,11 @@ export default function DashboardPage() {
           {/* Payments */}
           <div className="bg-white rounded-2xl shadow-sm p-6">
             <h2 className="text-lg font-semibold text-slate-800 mb-3">
-              💳 Giao dịch gần đây
+              💳 Giao dịch gần đây ({payments.length})
             </h2>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
               <table className="min-w-full text-sm text-left text-slate-700">
-                <thead className="bg-slate-100 text-slate-600">
+                <thead className="bg-slate-100 text-slate-600 sticky top-0">
                   <tr>
                     <th className="px-3 py-2">Mã GD</th>
                     <th className="px-3 py-2">Người dùng</th>
@@ -267,7 +267,7 @@ export default function DashboardPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {payments.slice(0, 6).map((p, i) => (
+                  {payments.map((p, i) => (
                     <tr key={i} className="border-b hover:bg-slate-50">
                       <td className="px-3 py-2">{p.paymentId}</td>
                       <td className="px-3 py-2">{p.fullName}</td>
@@ -302,10 +302,10 @@ export default function DashboardPage() {
           {/* Feedbacks */}
           <div className="bg-white rounded-2xl shadow-sm p-6">
             <h2 className="text-lg font-semibold text-slate-800 mb-3">
-              💬 Phản hồi mới nhất
+              💬 Phản hồi mới nhất ({feedbacks.length})
             </h2>
-            <div className="divide-y divide-slate-100">
-              {feedbacks.slice(0, 6).map((f, i) => (
+            <div className="divide-y divide-slate-100 max-h-[500px] overflow-y-auto">
+              {feedbacks.map((f, i) => (
                 <div key={i} className="py-3">
                   <p className="text-sm font-medium text-slate-800">
                     {f.userName} • {f.projectName}
