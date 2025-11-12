@@ -97,19 +97,18 @@ public class PaymentService {
     }
 
     private Long extractPaymentId(String content) {
-        String[] parts = content.split("\\.", 4);
-        if (parts.length < 4) {
-            throw new IllegalArgumentException("Không đúng định dạng content SEPAY: " + content);
+        if (content == null || content.isEmpty()) {
+            throw new IllegalArgumentException("Nội dung content bị trống!");
         }
 
-        String realContent = parts[3].trim();
+        // Regex tìm "ID" theo sau là 1 dãy số (ít nhất 1 chữ số)
+        Pattern pattern = Pattern.compile("ID(\\d+)");
+        Matcher matcher = pattern.matcher(content);
 
-        Pattern pattern = Pattern.compile("^ID(\\d+)");
-        Matcher matcher = pattern.matcher(realContent);
         if (matcher.find()) {
             return Long.parseLong(matcher.group(1));
         } else {
-            throw new IllegalArgumentException("Không tìm thấy paymentId trong nội dung: " + realContent);
+            throw new IllegalArgumentException("Không tìm thấy paymentId trong nội dung: " + content);
         }
     }
 

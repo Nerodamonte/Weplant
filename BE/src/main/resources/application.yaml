@@ -1,8 +1,11 @@
 supabase:
-  url: https://ufdixqatifrwwcofjxlx.supabase.co
-  serviceRoleKey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmZGl4cWF0aWZyd3djb2ZqeGx4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NzYwNzYyMywiZXhwIjoyMDczMTgzNjIzfQ.4lRguv4TPnhp4RsdTCPj1jNnms_gFa2P1HpeYDdSGqk
-  bucket: WeplantStorage
+  url: ${SPRING_SUPABASE_URL}
+  serviceRoleKey: ${SPRING_SUPABASE_SERVICE_ROLE_KEY}
+  bucket: ${SPRING_SUPABASE_STROAGE_BUCKET:WeplantStorage}
   bucketPublic: ${SUPABASE_BUCKET_PUBLIC:true}
+
+server:
+  port: ${PORT:8080}
 
 spring:
   application:
@@ -10,29 +13,47 @@ spring:
 
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://dpg-d2vsfmbuibrs73dn2kt0-a.singapore-postgres.render.com:5432/weplant?sslmode=require
-    username: weplant_user
-    password: wqFb4E4wWLpVq03flnvlM91Fv9iAV7wA
-    hikari:
-      maximum-pool-size: 10
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
 
-    jpa:
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:10}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
       hibernate:
-        ddl-auto: validate
-      properties:
-        hibernate:
-          dialect: org.hibernate.dialect.PostgreSQLDialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
 
   flyway:
-    enabled: true
-    baseline-on-migrate: true
-    url: jdbc:postgresql://localhost:5432/weplant
-    user: postgres
-    password: 12345
+    enabled: ${SPRING_FLYWAY_ENABLED:true}
+    baseline-on-migrate: ${SPRING_FLYWAY_BASELINE_ON_MIGRATE:true}
     locations: classpath:db/migration
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+          ssl:
+            trust: smtp.gmail.com
+        debug: true
 
 
 jwt:
   valid-duration: 300
   refreshable-duration: 172800
-  signer-key: BWHX28bDtNd9+mWCCZ7gi52UmXIkJJzi5qqdkNZUEghdrQ7Hoal4U1B2CqFc+3uA
+  signer-key: ${JWT_SIGNER_KEY}
