@@ -60,8 +60,6 @@ export default function AuthenticatedPage() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
- 
-
   // ==== trạng thái đăng nhập để điều hướng Trang Chủ + show Logout
   const [loggedIn, setLoggedIn] = useState(!!localStorage.getItem("authToken"));
 
@@ -82,7 +80,7 @@ export default function AuthenticatedPage() {
   useEffect(() => {
     const isAuthenticated = localStorage.getItem("isAuthenticated");
     const token = localStorage.getItem("authToken");
-    const userEmail = localStorage.getItem("userEmail");
+    const userId = localStorage.getItem("userId");
 
     setLoggedIn(!!token);
 
@@ -90,26 +88,33 @@ export default function AuthenticatedPage() {
       navigate("/login");
       return;
     }
-    if (!userEmail) {
-      setError("Bạn chưa đăng nhập!");
+    
+    if (!userId) {
+      setError("Không tìm thấy thông tin người dùng!");
       return;
     }
 
     const fetchUser = async () => {
       try {
-        const res = await authFetch(`${API}/users/getAll`);
+        // Sử dụng API mới: /api/users/user/{id}
+        const res = await authFetch(`${API}/users/user/${userId}`);
+        
         if (res.status === 401) {
           localStorage.removeItem("authToken");
           localStorage.removeItem("isAuthenticated");
+          localStorage.removeItem("userId");
+          localStorage.removeItem("userEmail");
           return navigate("/login");
         }
+        
         if (!res.ok) throw new Error("Lấy thông tin người dùng thất bại!");
 
         const result = await res.json();
-        const allUsers = result?.data || [];
-        const currentUser = allUsers.find((u) => u.email === userEmail);
+        const currentUser = result?.data;
+        
         if (!currentUser) throw new Error("Không tìm thấy người dùng!");
 
+        // Cập nhật lại localStorage với thông tin mới nhất
         localStorage.setItem("userId", String(currentUser.userId));
         localStorage.setItem("userEmail", currentUser.email);
 
