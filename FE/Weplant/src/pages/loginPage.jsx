@@ -31,12 +31,15 @@ export default function LoginPage() {
 
       const result = await response.json();
       const token = result?.data?.token;
+      const userId = result?.data?.userId;
       const userEmail = result?.data?.email;
       const userRole = result?.data?.role;
 
-      if (token && userRole) {
+      if (token && userRole && userId) {
+        // Lưu tất cả thông tin cần thiết vào localStorage
         localStorage.setItem("authToken", token);
         localStorage.setItem("isAuthenticated", "true");
+        localStorage.setItem("userId", String(userId)); // ⭐ QUAN TRỌNG: Lưu userId
         localStorage.setItem("userEmail", userEmail || email);
         localStorage.setItem("userRole", userRole);
 
@@ -44,7 +47,7 @@ export default function LoginPage() {
 
         navigate(userRole === "ADMIN" ? "/admin" : "/authen");
       } else {
-        setError("Không nhận được token hoặc role từ server!");
+        setError("Không nhận được thông tin đầy đủ từ server!");
       }
     } catch (err) {
       setError(err.message || "Có lỗi xảy ra khi đăng nhập!");
@@ -141,7 +144,6 @@ export default function LoginPage() {
                 Ghi nhớ tôi
               </label>
 
-              {/* 👇 Nút chuyển hướng sang trang forgot-password */}
               <button
                 type="button"
                 onClick={() => navigate("/forget-password")}
